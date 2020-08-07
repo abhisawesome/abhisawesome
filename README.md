@@ -22,7 +22,7 @@ I'm an experienced full stack developer living in India.<br/><br/>
 <code><img height="20" src="https://img.shields.io/static/v1?label=React-Native&color=green&message=%20&logo=react"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=%20&color=blue&message=%20&logo=c"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=PHP&color=green&message=%20&logo=php"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=GraphQL&color=blue&message= &logo=graphql"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=Graphql&color=blue&message= &logo=graphql"></code>
 
 
 **Hands-on Databases :** 
@@ -33,5 +33,10 @@ I'm an experienced full stack developer living in India.<br/><br/>
 <code><img height="20" src="https://img.shields.io/static/v1?label=Firebase&color=green&message=%20&logo=firebase"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=PostgreSQL&color=blue&message=%20&logo=postgresql"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=BigQuery&color=green&message=%20&logo=bigquery"></code>
+
+
+**DevOps Tools :**  
+
+<code><img height="20" src="https://img.shields.io/static/v1?label=Docker&color=red&message=%20&logo=docker"></code>
 
 
