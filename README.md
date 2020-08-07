@@ -40,3 +40,8 @@ I'm an experienced full stack developer living in India.<br/><br/>
 <code><img height="20" src="https://img.shields.io/static/v1?label=Docker&color=red&message=%20&logo=docker"></code>
 
 
+**Copyright**
+
+[Copyright](https://copyright.gov.in/frmStatusGenUser.aspx) for an encryption algorithm in India
+
+***Diary number:4977/2019-CO/SW***
