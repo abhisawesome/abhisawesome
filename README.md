@@ -10,6 +10,11 @@ I'm an experienced full stack developer living in India.<br/><br/>
 <a href="https://www.instagram.com/abhisawzm/">
   <img align="left" alt="Instagram" width="22px" src="https://cdn.jsdelivr.net/npm/simple-icons@v3/icons/instagram.svg" />
 </a>
+&nbsp;&nbsp;
+<a href="https://twitter.com/abhisawzm">
+  <img align="left" alt="Instagram" width="22px" src="https://cdn.jsdelivr.net/npm/simple-icons@v3/icons/twitter.svg" />
+</a>
+
 
 <br/><br/>
 **Hands-on Languages :** 
