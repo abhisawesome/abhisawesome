@@ -27,7 +27,9 @@ I'm an experienced full stack developer living in India.<br/><br/>
 <code><img height="20" src="https://img.shields.io/static/v1?label=React-Native&color=green&message=%20&logo=react"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=%20&color=blue&message=%20&logo=c"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=PHP&color=green&message=%20&logo=php"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Graphql&color=blue&message= &logo=graphql"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=Graphql&color=blue&message=%20&logo=graphql"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=Next.js&color=green&message=%20&logo=next.js"></code>
+<code><img height="20" src="https://img.shields.io/badge/C++-grey.svg?style=flat&logo=cplusplus"></code>
 
 
 **Hands-on Databases :** 
