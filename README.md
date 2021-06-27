@@ -1,7 +1,7 @@
 ### Hey 👋🏽, I'm Abhijith V
 <br/>
 
-I'm an experienced full stack developer living in India.<br/><br/>
+Full stack developer living in India.<br/><br/>
 
 <a href="https://www.linkedin.com/in/abhijithv/">
   <img align="left" alt="LinkdeIN" width="22px" src="https://cdn.jsdelivr.net/npm/simple-icons@v3/icons/linkedin.svg" />
