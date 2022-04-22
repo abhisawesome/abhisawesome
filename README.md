@@ -1,7 +1,7 @@
 ### Hey 👋🏽, I'm Abhijith V
 <br/>
 
-Full stack developer living in India.<br/><br/>
+Working as R&D Engineer @appmaker.xyz <br/><br/>
 
 <a href="https://www.linkedin.com/in/abhijithv/">
   <img align="left" alt="LinkdeIN" width="22px" src="https://cdn.jsdelivr.net/npm/simple-icons@v3/icons/linkedin.svg" />
@@ -45,6 +45,7 @@ Full stack developer living in India.<br/><br/>
 **DevOps Tools :**  
 
 <code><img height="20" src="https://img.shields.io/static/v1?label=Docker&color=red&message=%20&logo=docker"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=Kubernetes&color=red&message=%20&logo=kubernetes"></code>
 
 
 **Copyright**
