@@ -30,6 +30,7 @@ Working as R&D Engineer @appmaker.xyz <br/><br/>
 <code><img height="20" src="https://img.shields.io/static/v1?label=Graphql&color=blue&message=%20&logo=graphql"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=Next.js&color=green&message=%20&logo=next.js"></code>
 <code><img height="20" src="https://img.shields.io/badge/C++-grey.svg?style=flat&logo=cplusplus"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=Keystone.js&color=green&message=%20&logo=keystone.js"></code>
 
 
 **Hands-on Databases :** 
@@ -40,12 +41,22 @@ Working as R&D Engineer @appmaker.xyz <br/><br/>
 <code><img height="20" src="https://img.shields.io/static/v1?label=Firebase&color=green&message=%20&logo=firebase"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=PostgreSQL&color=blue&message=%20&logo=postgresql"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=BigQuery&color=green&message=%20&logo=bigquery"></code>
-
+<code><img height="20" src="https://img.shields.io/static/v1?label=ClickHouse&color=blue&message=%20&logo=clickhouse"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=Supabase&color=green&message=%20&logo=supabase"></code>
 
 **DevOps Tools :**  
 
 <code><img height="20" src="https://img.shields.io/static/v1?label=Docker&color=red&message=%20&logo=docker"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=Kubernetes&color=red&message=%20&logo=kubernetes"></code>
+
+**Hands-on Plarforms :**  
+<code><img height="20" src="https://img.shields.io/static/v1?label=AWS&color=red&message=%20&logo=amazon"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=GCP&color=red&message=%20&logo=google"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=Azure&color=red&message=%20&logo=microsoft"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=Hetzner&color=red&message=%20&logo=hetzner"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=Vultr&color=red&message=%20&logo=vultr"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=Digital Ocean&color=red&message=%20&logo=digitalocean"></code>
+
 
 
 **Copyright**
