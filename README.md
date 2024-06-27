@@ -20,6 +20,7 @@ Working as R&D Engineer @appmaker.xyz <br/><br/>
 **Hands-on Languages :** 
 
 <code><img height="20" src="https://img.shields.io/static/v1?label=NodeJS&color=blue&message=%20&logo=node.js"></code>
+<code><img height="20" src="https://img.shields.io/static/v1?label=BunJS&color=blue&message=%20&logo=bun.js"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=Flask&color=green&message=%20&logo=flask"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=Python&color=blue&message=%20&logo=python"></code>
 <code><img height="20" src="https://img.shields.io/static/v1?label=Typescript&color=green&message=%20&logo=typescript"></code>
