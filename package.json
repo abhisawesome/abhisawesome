@@ -7,7 +7,7 @@
       "start": "node server.js",
       "dev": "nodemon server.js",
       "predeploy": "npm run build",
-      "deploy": "gh-pages -b main -d .",
+      "deploy": "gh-pages -b master -d .",
       "build": "echo 'No build step required for static files'"
     },
     "keywords": [
