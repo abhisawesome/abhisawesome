@@ -1,10 +1,10 @@
 {
     "name": "abhisawesome.github.io",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Personal portfolio website",
     "scripts": {
       "predeploy": "npm run build",
-      "deploy": "gh-pages -d .",
+      "deploy": "gh-pages -b master --dotfiles true",
       "build": "echo 'No build step required for static files'"
     },
     "keywords": [
