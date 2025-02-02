@@ -4,7 +4,7 @@
     "description": "Personal portfolio website",
     "scripts": {
       "predeploy": "npm run build",
-      "deploy": "gh-pages -b master --dotfiles true",
+      "deploy": "gh-pages -b master -d .",
       "build": "echo 'No build step required for static files'"
     },
     "keywords": [
