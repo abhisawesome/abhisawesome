@@ -62,6 +62,7 @@ Working as R&D Engineer @appmaker.xyz <br/><br/>
 
 **Copyright**
 
+
 [Copyright](https://copyright.gov.in/frmStatusGenUser.aspx) for an encryption algorithm in India
 
 ***Diary number:4977/2019-CO/SW***
