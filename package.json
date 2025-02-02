@@ -5,7 +5,7 @@
     "homepage": "https://abhisawesome.github.io",
     "scripts": {
       "predeploy": "npm run build",
-      "deploy": "gh-pages -b main -d .",
+      "deploy": "gh-pages -d . -b main --nojekyll",
       "build": "echo 'No build step required for static files'"
     },
     "keywords": [
