@@ -33,7 +33,6 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
   const [direction, setDirection] = useState<{ v: 0, h: 2 }>({ v: 0, h: 2 });
   const [gameRunning, setGameRunning] = useState(true);
   const [score, setScore] = useState(0);
-  const [foodEaten, setFoodEaten] = useState(false);
   
   const gameRef = useRef<HTMLDivElement>(null);
   const directionRef = useRef(direction);
@@ -43,7 +42,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
     directionRef.current = direction;
   }, [direction]);
 
-  const generateFood = useCallback((currentSnake: Position[]) => {
+  const generateNewFood = useCallback((currentSnake: Position[]) => {
     let newFood: Position;
     let attempts = 0;
     const maxAttempts = 100;
@@ -59,23 +58,13 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
       attempts < maxAttempts
     );
     
-    return newFood;
+    setFood(newFood);
   }, [gameWidth, gameHeight]);
 
   // Initialize food position
   useEffect(() => {
-    const initialFood = generateFood(snake);
-    setFood(initialFood);
+    generateNewFood(snake);
   }, []);
-
-  // Handle food eaten flag
-  useEffect(() => {
-    if (foodEaten) {
-      const newFood = generateFood(snake);
-      setFood(newFood);
-      setFoodEaten(false);
-    }
-  }, [foodEaten, snake, generateFood]);
 
   const moveSnake = useCallback(() => {
     if (!gameRunning) return;
@@ -107,15 +96,16 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
       // Check food collision
       if (head.row === food.row && head.col === food.col) {
         setScore(s => s + 1);
-        setFoodEaten(true);
-        // Don't pop tail when eating food
+        // Generate new food immediately when eaten
+        generateNewFood(newSnake);
+        // Don't pop tail when eating food (snake grows)
       } else {
         newSnake.pop();
       }
 
       return newSnake;
     });
-  }, [gameRunning, food, gameHeight, gameWidth, score, onGameOver]);
+  }, [gameRunning, food, gameHeight, gameWidth, score, onGameOver, generateNewFood]);
 
   useEffect(() => {
     const interval = setInterval(moveSnake, 150);
