@@ -6,17 +6,28 @@ interface Position {
 }
 
 interface SnakeGameProps {
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
   onGameOver: (score: number) => void;
   onExit: () => void;
+  fullscreen?: boolean;
 }
 
-export const SnakeGame: React.FC<SnakeGameProps> = ({ width, height, onGameOver, onExit }) => {
+export const SnakeGame: React.FC<SnakeGameProps> = ({ 
+  width = 60, 
+  height = 20, 
+  onGameOver, 
+  onExit,
+  fullscreen = false 
+}) => {
+  // Calculate dimensions based on fullscreen mode
+  const gameWidth = fullscreen ? Math.floor(window.innerWidth / 10) - 4 : width;
+  const gameHeight = fullscreen ? Math.floor(window.innerHeight / 20) - 8 : height;
+  
   const [snake, setSnake] = useState<Position[]>([
-    { row: Math.floor(height / 2), col: Math.floor(width / 4) },
-    { row: Math.floor(height / 2), col: Math.floor(width / 4) - 2 },
-    { row: Math.floor(height / 2), col: Math.floor(width / 4) - 4 },
+    { row: Math.floor(gameHeight / 2), col: Math.floor(gameWidth / 4) },
+    { row: Math.floor(gameHeight / 2), col: Math.floor(gameWidth / 4) - 2 },
+    { row: Math.floor(gameHeight / 2), col: Math.floor(gameWidth / 4) - 4 },
   ]);
   const [food, setFood] = useState<Position>({ row: 0, col: 0 });
   const [direction, setDirection] = useState<{ v: 0, h: 2 }>({ v: 0, h: 2 });
@@ -25,25 +36,39 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ width, height, onGameOver,
   
   const gameRef = useRef<HTMLDivElement>(null);
   const directionRef = useRef(direction);
+  const foodRef = useRef(food);
+
+  // Update refs when states change
+  useEffect(() => {
+    directionRef.current = direction;
+  }, [direction]);
+
+  useEffect(() => {
+    foodRef.current = food;
+  }, [food]);
 
   const generateFood = useCallback((currentSnake: Position[]) => {
     let newFood: Position;
+    let attempts = 0;
+    const maxAttempts = 100;
+    
     do {
       newFood = {
-        row: Math.floor(Math.random() * (height - 2)) + 1,
-        col: Math.floor(Math.random() * (width - 2)) + 1,
+        row: Math.floor(Math.random() * (gameHeight - 2)) + 1,
+        col: Math.floor(Math.random() * (gameWidth - 2)) + 1,
       };
-    } while (currentSnake.some(segment => segment.row === newFood.row && segment.col === newFood.col));
+      attempts++;
+    } while (
+      currentSnake.some(segment => segment.row === newFood.row && segment.col === newFood.col) &&
+      attempts < maxAttempts
+    );
+    
     setFood(newFood);
-  }, [width, height]);
+  }, [gameWidth, gameHeight]);
 
   useEffect(() => {
     generateFood(snake);
   }, []);
-
-  useEffect(() => {
-    directionRef.current = direction;
-  }, [direction]);
 
   const moveSnake = useCallback(() => {
     if (!gameRunning) return;
@@ -56,8 +81,8 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ width, height, onGameOver,
       head.col += directionRef.current.h;
 
       // Check wall collision
-      if (head.row <= 0 || head.row >= height - 1 || 
-          head.col <= 0 || head.col >= width - 1) {
+      if (head.row <= 0 || head.row >= gameHeight - 1 || 
+          head.col <= 0 || head.col >= gameWidth - 1) {
         setGameRunning(false);
         onGameOver(score);
         return currentSnake;
@@ -72,17 +97,21 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ width, height, onGameOver,
 
       newSnake.unshift(head);
 
-      // Check food collision
-      if (head.row === food.row && head.col === food.col) {
-        setScore(s => s + 1);
-        generateFood(newSnake);
+      // Check food collision using ref to get latest food position
+      if (head.row === foodRef.current.row && head.col === foodRef.current.col) {
+        setScore(prevScore => {
+          const newScore = prevScore + 1;
+          // Generate new food position
+          setTimeout(() => generateFood(newSnake), 0);
+          return newScore;
+        });
       } else {
         newSnake.pop();
       }
 
       return newSnake;
     });
-  }, [gameRunning, food, generateFood, height, width, score, onGameOver]);
+  }, [gameRunning, generateFood, gameHeight, gameWidth, score, onGameOver]);
 
   useEffect(() => {
     const interval = setInterval(moveSnake, 150);
@@ -92,6 +121,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ width, height, onGameOver,
   const handleKeyPress = useCallback((e: KeyboardEvent) => {
     if (!gameRunning) return;
 
+    e.preventDefault();
     const newDirection = { ...directionRef.current };
 
     switch (e.key) {
@@ -144,45 +174,62 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ width, height, onGameOver,
   }, [handleKeyPress]);
 
   const renderGame = () => {
-    const grid: string[][] = Array(height).fill(null).map(() => Array(width).fill(' '));
+    const grid: string[][] = Array(gameHeight).fill(null).map(() => Array(gameWidth).fill(' '));
 
     // Draw borders
-    for (let i = 0; i < width; i++) {
+    for (let i = 0; i < gameWidth; i++) {
       grid[0][i] = '─';
-      grid[height - 1][i] = '─';
+      grid[gameHeight - 1][i] = '─';
     }
-    for (let i = 0; i < height; i++) {
+    for (let i = 0; i < gameHeight; i++) {
       grid[i][0] = '│';
-      grid[i][width - 1] = '│';
+      grid[i][gameWidth - 1] = '│';
     }
     grid[0][0] = '┌';
-    grid[0][width - 1] = '┐';
-    grid[height - 1][0] = '└';
-    grid[height - 1][width - 1] = '┘';
+    grid[0][gameWidth - 1] = '┐';
+    grid[gameHeight - 1][0] = '└';
+    grid[gameHeight - 1][gameWidth - 1] = '┘';
 
     // Draw snake
     snake.forEach((segment, index) => {
-      if (segment.col > 0 && segment.col < width - 1 && 
-          segment.row > 0 && segment.row < height - 1) {
+      if (segment.col > 0 && segment.col < gameWidth - 1 && 
+          segment.row > 0 && segment.row < gameHeight - 1) {
         grid[segment.row][segment.col] = index === 0 ? '@' : '*';
       }
     });
 
     // Draw food
-    if (food.col > 0 && food.col < width - 1 && 
-        food.row > 0 && food.row < height - 1) {
+    if (food.col > 0 && food.col < gameWidth - 1 && 
+        food.row > 0 && food.row < gameHeight - 1) {
       grid[food.row][food.col] = '◆';
     }
 
     return grid.map(row => row.join('')).join('\n');
   };
 
+  const containerStyle = fullscreen ? {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgb(10, 10, 10)',
+    zIndex: 9999,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '2rem'
+  } : {};
+
   return (
-    <div ref={gameRef} className="font-mono text-sm">
+    <div ref={gameRef} className="font-mono text-sm" style={containerStyle}>
       <div className="mb-2 text-primary">
         Snake Game - Score: {score} | Use WASD or Arrow Keys | Press Q or ESC to quit
       </div>
-      <pre className="text-foreground">{renderGame()}</pre>
+      <pre className="text-foreground" style={{ fontSize: fullscreen ? '0.8rem' : '0.875rem' }}>
+        {renderGame()}
+      </pre>
       {!gameRunning && (
         <div className="mt-2 text-destructive">
           Game Over! Final Score: {score}

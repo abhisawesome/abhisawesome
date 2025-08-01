@@ -363,36 +363,43 @@ Type the game name to start playing.`,
             type: 'error'
           }]);
         } else {
-          setIsGameActive(true);
-          const handleGameOver = (score: number) => {
-            setIsGameActive(false);
-            setCommands(prev => [...prev, {
-              text: `Game Over! Your score: ${score}`,
-              timestamp: new Date(),
-              type: 'output'
-            }]);
-          };
-          const handleExit = () => {
-            setIsGameActive(false);
-            setCommands(prev => [...prev, {
-              text: 'Game exited.',
-              timestamp: new Date(),
-              type: 'output'
-            }]);
-          };
           setCommands(prev => [...prev, {
-            text: '',
+            text: 'Launching Snake game in fullscreen mode...',
             timestamp: new Date(),
-            type: 'output',
-            component: (
-              <SnakeGame 
-                width={60} 
-                height={20} 
-                onGameOver={handleGameOver}
-                onExit={handleExit}
-              />
-            )
+            type: 'output'
           }]);
+          
+          setTimeout(() => {
+            setIsGameActive(true);
+            const handleGameOver = (score: number) => {
+              setIsGameActive(false);
+              setCommands(prev => [...prev, {
+                text: `Game Over! Your score: ${score}`,
+                timestamp: new Date(),
+                type: 'output'
+              }]);
+            };
+            const handleExit = () => {
+              setIsGameActive(false);
+              setCommands(prev => [...prev, {
+                text: 'Game exited.',
+                timestamp: new Date(),
+                type: 'output'
+              }]);
+            };
+            setCommands(prev => [...prev, {
+              text: '',
+              timestamp: new Date(),
+              type: 'output',
+              component: (
+                <SnakeGame 
+                  fullscreen={true}
+                  onGameOver={handleGameOver}
+                  onExit={handleExit}
+                />
+              )
+            }]);
+          }, 500);
         }
         break;
 
