@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Command {
@@ -382,16 +382,6 @@ Type "achievements" to see awards and recognitions.`,
     >
       <div className="max-w-4xl mx-auto h-full">
         <Card className="h-full flex flex-col border-2 shadow-2xl">
-          <CardHeader className="px-4 py-2 space-y-0 flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500 opacity-90"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500 opacity-90"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500 opacity-90"></div>
-              </div>
-              <span className="text-xs text-muted-foreground ml-2 font-mono">visitor@abhi-portfolio:~</span>
-            </div>
-          </CardHeader>
           <CardContent className="flex-1 p-0 overflow-hidden">
             <ScrollArea className="h-full" ref={scrollAreaRef}>
               <div className="p-4 space-y-2">
