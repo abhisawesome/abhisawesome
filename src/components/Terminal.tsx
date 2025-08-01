@@ -2,11 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { SnakeGame } from './games/SnakeGame';
 
 interface Command {
   text: string;
   timestamp: Date;
   type: 'input' | 'output' | 'error';
+  component?: React.ReactNode;
 }
 
 export const Terminal: React.FC = () => {
@@ -14,6 +16,7 @@ export const Terminal: React.FC = () => {
   const [currentCommand, setCurrentCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [isGameActive, setIsGameActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +41,8 @@ export const Terminal: React.FC = () => {
   contact       - Get my contact information
   certifications - View certifications and courses
   achievements  - View awards and recognitions
+  games         - List available games
+  snake         - Play Snake game
   theme         - Show terminal theme info
   ls/dir        - List directory contents
   pwd           - Print working directory
@@ -306,6 +311,64 @@ Type "achievements" to see awards and recognitions.`,
         }]);
         break;
 
+      case 'games':
+        setCommands(prev => [...prev, {
+          text: `Available Games:
+================
+
+1. SNAKE - Classic snake game
+   Command: snake
+   Controls: WASD or Arrow Keys
+   
+More games coming soon!
+
+Type the game name to start playing.`,
+          timestamp: new Date(),
+          type: 'output'
+        }]);
+        break;
+
+      case 'snake':
+        if (isGameActive) {
+          setCommands(prev => [...prev, {
+            text: 'A game is already running. Please exit the current game first.',
+            timestamp: new Date(),
+            type: 'error'
+          }]);
+        } else {
+          setIsGameActive(true);
+          const handleGameOver = (score: number) => {
+            setIsGameActive(false);
+            setCommands(prev => [...prev, {
+              text: `Game Over! Your score: ${score}`,
+              timestamp: new Date(),
+              type: 'output'
+            }]);
+          };
+          const handleExit = () => {
+            setIsGameActive(false);
+            setCommands(prev => [...prev, {
+              text: 'Game exited.',
+              timestamp: new Date(),
+              type: 'output'
+            }]);
+          };
+          setCommands(prev => [...prev, {
+            text: '',
+            timestamp: new Date(),
+            type: 'output',
+            component: (
+              <SnakeGame 
+                width={60} 
+                height={20} 
+                onGameOver={handleGameOver}
+                onExit={handleExit}
+              />
+            )
+          }]);
+        }
+        break;
+
       case '':
         // Empty command, do nothing
         break;
@@ -370,29 +433,37 @@ Type "achievements" to see awards and recognitions.`,
             <ScrollArea className="h-full" ref={scrollAreaRef}>
               <div className="p-4 space-y-2">
                 {commands.map((cmd, index) => (
-                  <div key={index} className={cn(
-                    "font-mono text-sm leading-relaxed",
-                    cmd.type === 'input' && "text-primary",
-                    cmd.type === 'output' && "text-foreground whitespace-pre-wrap",
-                    cmd.type === 'error' && "text-destructive"
-                  )}>
-                    {cmd.text}
+                  <div key={index}>
+                    {cmd.component ? (
+                      <div className="my-2">{cmd.component}</div>
+                    ) : (
+                      <div className={cn(
+                        "font-mono text-sm leading-relaxed",
+                        cmd.type === 'input' && "text-primary",
+                        cmd.type === 'output' && "text-foreground whitespace-pre-wrap",
+                        cmd.type === 'error' && "text-destructive"
+                      )}>
+                        {cmd.text}
+                      </div>
+                    )}
                   </div>
                 ))}
                 
-                <div className="flex items-center font-mono text-sm">
-                  <span className="text-primary mr-2">$</span>
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={currentCommand}
-                    onChange={(e) => setCurrentCommand(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="flex-1 bg-transparent outline-none text-foreground caret-primary"
-                    autoFocus
-                  />
-                  <span className="animate-terminal-blink text-primary">_</span>
-                </div>
+                {!isGameActive && (
+                  <div className="flex items-center font-mono text-sm">
+                    <span className="text-primary mr-2">$</span>
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={currentCommand}
+                      onChange={(e) => setCurrentCommand(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="flex-1 bg-transparent outline-none text-foreground caret-primary"
+                      autoFocus
+                    />
+                    <span className="animate-terminal-blink text-primary">_</span>
+                  </div>
+                )}
               </div>
             </ScrollArea>
           </CardContent>
