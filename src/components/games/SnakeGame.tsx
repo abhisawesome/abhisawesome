@@ -30,7 +30,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
     { row: Math.floor(gameHeight / 2), col: Math.floor(gameWidth / 4) - 4 },
   ]);
   const [food, setFood] = useState<Position>({ row: 0, col: 0 });
-  const [direction, setDirection] = useState<{ v: 0, h: 2 }>({ v: 0, h: 2 });
+  const [direction, setDirection] = useState<{ v: number, h: number }>({ v: 0, h: 2 });
   const [gameRunning, setGameRunning] = useState(true);
   const [score, setScore] = useState(0);
   
