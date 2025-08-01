@@ -10,23 +10,7 @@ interface Command {
 }
 
 export const Terminal: React.FC = () => {
-  const [commands, setCommands] = useState<Command[]>([
-    {
-      text: 'Welcome to Abhijith V\'s Portfolio Terminal v1.0.0',
-      timestamp: new Date(),
-      type: 'output'
-    },
-    {
-      text: 'R&D Engineer @appmaker.xyz',
-      timestamp: new Date(),
-      type: 'output'
-    },
-    {
-      text: 'Type "help" for available commands',
-      timestamp: new Date(),
-      type: 'output'
-    }
-  ]);
+  const [commands, setCommands] = useState<Command[]>([]);
   const [currentCommand, setCurrentCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
