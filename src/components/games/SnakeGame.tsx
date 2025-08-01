@@ -33,19 +33,15 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
   const [direction, setDirection] = useState<{ v: 0, h: 2 }>({ v: 0, h: 2 });
   const [gameRunning, setGameRunning] = useState(true);
   const [score, setScore] = useState(0);
+  const [foodEaten, setFoodEaten] = useState(false);
   
   const gameRef = useRef<HTMLDivElement>(null);
   const directionRef = useRef(direction);
-  const foodRef = useRef(food);
 
-  // Update refs when states change
+  // Update direction ref when direction changes
   useEffect(() => {
     directionRef.current = direction;
   }, [direction]);
-
-  useEffect(() => {
-    foodRef.current = food;
-  }, [food]);
 
   const generateFood = useCallback((currentSnake: Position[]) => {
     let newFood: Position;
@@ -63,12 +59,23 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
       attempts < maxAttempts
     );
     
-    setFood(newFood);
+    return newFood;
   }, [gameWidth, gameHeight]);
 
+  // Initialize food position
   useEffect(() => {
-    generateFood(snake);
+    const initialFood = generateFood(snake);
+    setFood(initialFood);
   }, []);
+
+  // Handle food eaten flag
+  useEffect(() => {
+    if (foodEaten) {
+      const newFood = generateFood(snake);
+      setFood(newFood);
+      setFoodEaten(false);
+    }
+  }, [foodEaten, snake, generateFood]);
 
   const moveSnake = useCallback(() => {
     if (!gameRunning) return;
@@ -97,21 +104,18 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({
 
       newSnake.unshift(head);
 
-      // Check food collision using ref to get latest food position
-      if (head.row === foodRef.current.row && head.col === foodRef.current.col) {
-        setScore(prevScore => {
-          const newScore = prevScore + 1;
-          // Generate new food position
-          setTimeout(() => generateFood(newSnake), 0);
-          return newScore;
-        });
+      // Check food collision
+      if (head.row === food.row && head.col === food.col) {
+        setScore(s => s + 1);
+        setFoodEaten(true);
+        // Don't pop tail when eating food
       } else {
         newSnake.pop();
       }
 
       return newSnake;
     });
-  }, [gameRunning, generateFood, gameHeight, gameWidth, score, onGameOver]);
+  }, [gameRunning, food, gameHeight, gameWidth, score, onGameOver]);
 
   useEffect(() => {
     const interval = setInterval(moveSnake, 150);
