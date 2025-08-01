@@ -26,19 +26,19 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ width, height, onGameOver,
   const gameRef = useRef<HTMLDivElement>(null);
   const directionRef = useRef(direction);
 
-  const generateFood = useCallback(() => {
+  const generateFood = useCallback((currentSnake: Position[]) => {
     let newFood: Position;
     do {
       newFood = {
         row: Math.floor(Math.random() * (height - 2)) + 1,
         col: Math.floor(Math.random() * (width - 2)) + 1,
       };
-    } while (snake.some(segment => segment.row === newFood.row && segment.col === newFood.col));
+    } while (currentSnake.some(segment => segment.row === newFood.row && segment.col === newFood.col));
     setFood(newFood);
-  }, [snake, width, height]);
+  }, [width, height]);
 
   useEffect(() => {
-    generateFood();
+    generateFood(snake);
   }, []);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ width, height, onGameOver,
       // Check food collision
       if (head.row === food.row && head.col === food.col) {
         setScore(s => s + 1);
-        generateFood();
+        generateFood(newSnake);
       } else {
         newSnake.pop();
       }

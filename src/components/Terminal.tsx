@@ -12,7 +12,34 @@ interface Command {
 }
 
 export const Terminal: React.FC = () => {
-  const [commands, setCommands] = useState<Command[]>([]);
+  const [commands, setCommands] = useState<Command[]>([
+    {
+      text: `Initializing terminal...`,
+      timestamp: new Date(),
+      type: 'output'
+    },
+    {
+      text: `[OK] Terminal v1.0.0 loaded`,
+      timestamp: new Date(),
+      type: 'output'
+    },
+    {
+      text: `[OK] Portfolio modules loaded`,
+      timestamp: new Date(),
+      type: 'output'
+    },
+    {
+      text: `
+Welcome to Abhijith V's Interactive Terminal Portfolio
+=====================================================
+R&D Engineer @appmaker.xyz | 7+ years experience
+
+Type "help" for available commands
+Type "games" to see available games`,
+      timestamp: new Date(),
+      type: 'output'
+    }
+  ]);
   const [currentCommand, setCurrentCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
