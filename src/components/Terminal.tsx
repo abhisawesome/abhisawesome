@@ -2,14 +2,13 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SnakeGame } from './games/SnakeGame';
-import { BootSequence } from './BootSequence';
 import { MatrixRain } from './effects/MatrixRain';
-import { Screensaver } from './effects/Screensaver';
 import { HackAnimation } from './effects/HackAnimation';
 import { SudoRm } from './effects/SudoRm';
 import { NanoEditor } from './effects/NanoEditor';
 import { TopViewer } from './effects/TopViewer';
 import { createDefaultFileSystem } from '@/lib/defaultFileSystem';
+import type { VirtualFileSystem } from '@/lib/virtualFileSystem';
 import { processCommandWithPipes } from '@/lib/commandProcessor';
 import { applyTheme, loadSavedTheme } from '@/lib/themes';
 import { ProcessManager } from '@/lib/processManager';
@@ -49,15 +48,34 @@ const ALL_COMMANDS = [
   'df', 'free', 'chmod', 'ping', 'ssh', 'ifconfig', 'ip',
 ];
 
-const IDLE_TIMEOUT = 30000; // 30 seconds
 
-export const Terminal: React.FC = () => {
-  const fsRef = useRef(createDefaultFileSystem());
-  const pmRef = useRef(new ProcessManager());
-  const smRef = useRef(new ServiceManager());
+interface TerminalProps {
+  onClose?: () => void;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+  fileSystem?: VirtualFileSystem;
+  processManager?: ProcessManager;
+  serviceManager?: ServiceManager;
+}
+
+export const Terminal: React.FC<TerminalProps> = ({ fileSystem, processManager, serviceManager }) => {
+  const fsRef = useRef(fileSystem || createDefaultFileSystem());
+  const pmRef = useRef(processManager || new ProcessManager());
+  const smRef = useRef(serviceManager || new ServiceManager());
   const [cwd, setCwd] = useState('~');
-  const [booting, setBooting] = useState(true);
-  const [commands, setCommands] = useState<Command[]>([]);
+  const [commands, setCommands] = useState<Command[]>([
+    {
+      text: `Welcome to Abhijith V's Interactive Terminal Portfolio
+=====================================================
+R&D Engineer @appmaker.xyz | 7+ years experience
+
+Type "help" for available commands
+Type "ls" to explore the filesystem
+Type "theme" to switch color themes`,
+      timestamp: new Date(),
+      type: 'output'
+    }
+  ]);
   const [currentCommand, setCurrentCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -68,39 +86,18 @@ export const Terminal: React.FC = () => {
   const [glitching, setGlitching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const idleTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Load saved theme
   useEffect(() => {
     loadSavedTheme();
   }, []);
 
-  // Idle timer for screensaver
-  const resetIdleTimer = useCallback(() => {
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    if (activeApp || booting) return;
-    idleTimerRef.current = setTimeout(() => {
-      if (!activeApp && !booting) setActiveApp('screensaver');
-    }, IDLE_TIMEOUT);
-  }, [activeApp, booting]);
-
-  useEffect(() => {
-    resetIdleTimer();
-    const events = ['keydown', 'mousemove', 'click', 'touchstart'];
-    const handler = () => resetIdleTimer();
-    events.forEach(e => document.addEventListener(e, handler));
-    return () => {
-      events.forEach(e => document.removeEventListener(e, handler));
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    };
-  }, [resetIdleTimer]);
 
   const exitApp = useCallback(() => {
     setActiveApp(null);
     setAppArgs({});
-    resetIdleTimer();
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, [resetIdleTimer]);
+  }, []);
 
   const handleCommand = useCallback(async (cmd: string) => {
     const trimmedCmd = cmd.trim();
@@ -111,7 +108,6 @@ export const Terminal: React.FC = () => {
     }
     setHistoryIndex(-1);
     setTabState(null);
-    resetIdleTimer();
 
     if (!trimmedCmd) {
       setCurrentCommand('');
@@ -178,7 +174,7 @@ export const Terminal: React.FC = () => {
 
     setCwd(fsRef.current.getDisplayCwd());
     setCurrentCommand('');
-  }, [cwd, activeApp, resetIdleTimer]);
+  }, [cwd, activeApp]);
 
   const handleTabComplete = useCallback(() => {
     const input = currentCommand;
@@ -295,24 +291,6 @@ export const Terminal: React.FC = () => {
     inputRef.current?.focus();
   };
 
-  // Boot sequence
-  if (booting) {
-    return <BootSequence onComplete={() => {
-      setBooting(false);
-      setCommands([{
-        text: `Welcome to Abhijith V's Interactive Terminal Portfolio
-=====================================================
-R&D Engineer @appmaker.xyz | 7+ years experience
-
-Type "help" for available commands
-Type "ls" to explore the filesystem
-Type "theme" to switch color themes`,
-        timestamp: new Date(),
-        type: 'output'
-      }]);
-    }} />;
-  }
-
   // Render active fullscreen apps
   const renderActiveApp = () => {
     switch (activeApp) {
@@ -332,8 +310,6 @@ Type "theme" to switch color themes`,
         );
       case 'matrix':
         return <MatrixRain onExit={exitApp} />;
-      case 'screensaver':
-        return <Screensaver onExit={exitApp} />;
       case 'hack':
         return <HackAnimation onExit={exitApp} />;
       case 'sudo-rm':
@@ -392,22 +368,17 @@ Type "theme" to switch color themes`,
 
   return (
     <div className={cn(
-      "w-full h-[100dvh] bg-background flex flex-col overflow-hidden transition-all duration-100",
+      "w-full h-full bg-background flex flex-col overflow-hidden transition-all duration-100",
       glitching && "animate-glitch"
     )}>
       {renderActiveApp()}
 
       {/* Terminal window */}
-      <div className="flex-1 flex flex-col max-w-5xl w-full mx-auto p-1 sm:p-2 md:p-4 min-h-0">
-        <div className="flex-1 flex flex-col border border-border/60 rounded-lg overflow-hidden shadow-[0_0_40px_rgba(0,255,100,0.06)] min-h-0">
+      <div className="flex-1 flex flex-col w-full min-h-0">
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
 
-          {/* Title bar */}
-          <div className="flex items-center gap-2 px-3 py-2 sm:py-2.5 bg-secondary/60 border-b border-border/40 shrink-0 select-none">
-            <div className="flex gap-1.5">
-              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500/80 hover:bg-red-500 transition-colors" />
-              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500/80 hover:bg-yellow-500 transition-colors" />
-              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500/80 hover:bg-green-500 transition-colors" />
-            </div>
+          {/* Info bar */}
+          <div className="flex items-center gap-2 px-3 py-1 sm:py-1.5 bg-secondary/40 border-b border-border/30 shrink-0 select-none">
             <div className="flex-1 text-center">
               <span className="text-[10px] sm:text-xs text-muted-foreground tracking-wider">
                 visitor@abhi-portfolio: {cwd}

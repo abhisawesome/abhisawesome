@@ -1,7 +1,7 @@
-import { Terminal } from './components/Terminal'
+import { Desktop } from './components/Desktop'
 
 function App() {
-  return <Terminal />
+  return <Desktop />
 }
 
 export default App

@@ -29,6 +29,16 @@ export class VirtualFileSystem {
     this.protectedPaths.add(this.resolvePath(path));
   }
 
+  isProtected(path: string): boolean {
+    const resolved = this.resolvePath(path);
+    if (this.protectedPaths.has(resolved)) return true;
+    for (const p of this.protectedPaths) {
+      const node = this.nodes.get(p);
+      if (node?.type === 'directory' && resolved.startsWith(p + '/')) return true;
+    }
+    return false;
+  }
+
   private checkProtected(resolved: string, op: string): void {
     if (this.protectedPaths.has(resolved)) {
       throw new Error(`${op}: cannot modify '${resolved.split('/').pop()}': Permission denied (read-only)`);

@@ -6,6 +6,7 @@ export function createDefaultFileSystem(): VirtualFileSystem {
   // Create directory structure
   fs.mkdirp('/home/visitor/projects');
   fs.mkdirp('/home/visitor/certificates');
+  fs.mkdirp('/home/visitor/Desktop');
   fs.mkdirp('/etc');
   fs.mkdirp('/tmp');
   fs.mkdirp('/var/log');
@@ -202,6 +203,18 @@ Live: abhisawesome.github.io/abhisawesome/`);
   fs.writeFile('/home/visitor/certificates/python-ds-datacamp.txt', 'Introduction to Python for Data Science - DataCamp');
   fs.writeFile('/home/visitor/certificates/python-ds-ibm.txt', 'Python for Data Science - IBM');
   fs.writeFile('/home/visitor/certificates/ml-ibm.txt', 'Machine Learning - IBM');
+
+  // Desktop files (shortcuts to key portfolio files)
+  fs.writeFile('/home/visitor/Desktop/about.txt', fs.readFile('/home/visitor/about.txt'));
+  fs.writeFile('/home/visitor/Desktop/resume.txt', fs.readFile('/home/visitor/resume.txt'));
+  fs.writeFile('/home/visitor/Desktop/contact.md', fs.readFile('/home/visitor/contact.md'));
+  fs.writeFile('/home/visitor/Desktop/skills.json', fs.readFile('/home/visitor/skills.json'));
+  fs.writeFile('/home/visitor/Desktop/notes.txt', `Welcome to my portfolio!
+
+Feel free to edit this file using the text editor
+or from the terminal with: nano ~/Desktop/notes.txt
+
+Try exploring the filesystem with 'ls' and 'cd' commands.`);
 
   // Protect all default portfolio files and directories
   const protectedPaths = [
