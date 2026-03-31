@@ -152,15 +152,7 @@ const abhi = {
 
 <div align="center">
 
-```
- ____________________________________________________
-|                                                    |
-|   "To improve my technical skills through          |
-|    eminent work culture and thereby                |
-|    contributing to the industry."                   |
-|____________________________________________________|
-
-```
+> *"To improve my technical skills through eminent work culture and thereby contributing to the industry."*
 
 <br/>
 
