@@ -138,12 +138,11 @@ const abhi = {
 
 <div align="center">
 
-<img src="https://github-readme-stats.vercel.app/api?username=abhisawesome&show_icons=true&theme=radical&hide_border=true&bg_color=0d1117&title_color=00d4aa&icon_color=00d4aa&text_color=c9d1d9" width="49%" />
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=abhisawesome&theme=radical&hide_border=true&background=0d1117&ring=00d4aa&fire=00d4aa&currStreakLabel=00d4aa" width="49%" />
+<img src="https://github-readme-streak-stats.herokuapp.com/?user=abhisawesome&theme=radical&hide_border=true&background=0d1117&ring=00d4aa&fire=00d4aa&currStreakLabel=00d4aa" width="55%" />
 
 <br/>
 
-<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=abhisawesome&layout=compact&theme=radical&hide_border=true&bg_color=0d1117&title_color=00d4aa&text_color=c9d1d9&langs_count=8" width="40%" />
+<img src="https://github-profile-trophy.vercel.app/?username=abhisawesome&theme=darkhub&no-frame=true&no-bg=true&column=4&margin-w=15&margin-h=15" width="60%" />
 
 </div>
 
@@ -173,4 +172,8 @@ const abhi = {
 
 </div>
 
-<img src="https://raw.githubusercontent.com/abhisawesome/abhisawesome/output/github-snake-dark.svg" width="100%" alt="Snake animation" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/abhisawesome/abhisawesome/output/github-snake-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/abhisawesome/abhisawesome/output/github-snake.svg" />
+  <img alt="github-snake" src="https://raw.githubusercontent.com/abhisawesome/abhisawesome/output/github-snake-dark.svg" width="100%" />
+</picture>
