@@ -1,5 +1,7 @@
-import type { VirtualFileSystem } from './virtualFileSystem';
+import { VirtualFileSystem } from './virtualFileSystem';
 import { themes } from './themes';
+import type { ProcessManager } from './processManager';
+import type { ServiceManager } from './serviceManager';
 
 export interface CommandResult {
   output: string;
@@ -14,6 +16,8 @@ export interface CommandResult {
 
 export interface CommandContext {
   isGameActive: boolean;
+  processManager: ProcessManager;
+  serviceManager: ServiceManager;
 }
 
 function tokenize(input: string): string[] {
@@ -316,6 +320,42 @@ export function processCommand(
         case 'which':
           result = cmdWhich(args);
           break;
+        // System simulation
+        case 'top':
+        case 'htop':
+          result = { output: '', type: 'output', launchApp: 'top' };
+          break;
+        case 'ps':
+          result = { output: context.processManager.formatPs(), type: 'output' };
+          break;
+        case 'kill':
+          result = cmdKill(context.processManager, args);
+          break;
+        case 'systemctl':
+          result = cmdSystemctl(context.serviceManager, args);
+          break;
+        case 'crontab':
+          result = cmdCrontab(fs, args);
+          break;
+        case 'df':
+          result = cmdDf(fs);
+          break;
+        case 'free':
+          result = cmdFree();
+          break;
+        case 'chmod':
+          result = cmdChmod(fs, args);
+          break;
+        case 'ping':
+          result = cmdPing(args);
+          break;
+        case 'ssh':
+          result = cmdSsh(fs, args);
+          break;
+        case 'ifconfig':
+        case 'ip':
+          result = cmdIfconfig();
+          break;
         default:
           result = { output: `Command not found: ${tokens[0]}. Type "help" for available commands.`, type: 'error' };
       }
@@ -376,12 +416,25 @@ function cmdHelp(): CommandResult {
   certifications   - View certifications
   achievements     - View awards
 
+  PROCESS & SERVICE:
+  top/htop         - Live process viewer
+  ps [aux]         - List running processes
+  kill <pid>       - Terminate a process
+  systemctl <cmd>  - Manage services (status/start/stop/restart)
+  crontab -l/-e    - View/edit cron jobs
+
   SYSTEM:
   whoami           - Display current user
   date             - Show current date/time
   uname [-a]       - System information
   hostname         - Show hostname
   uptime           - Show uptime
+  df [-h]          - Disk usage statistics
+  free [-h]        - Memory usage statistics
+  chmod <mode> <f> - Change file permissions
+  ping <host>      - Ping a network host
+  ssh <server>     - Connect to a server
+  ifconfig         - Network interface info
   history          - Command history info
   neofetch         - System info display
   weather [city]   - Show weather info
@@ -438,11 +491,12 @@ function cmdLs(fs: VirtualFileSystem, args: string[]): CommandResult {
       const fullPath = resolved === '/' ? `/${name}` : `${resolved}/${name}`;
       const node = fs.getNode(fullPath);
       if (!node) return name;
+      const perms = VirtualFileSystem.modeToString(node.mode, node.type === 'directory');
       if (node.type === 'directory') {
-        return `drwxr-xr-x  -        ${name}/`;
+        return `${perms}  -        ${name}/`;
       }
       const size = String(node.content.length).padStart(8);
-      return `-rw-r--r--  ${size}  ${name}`;
+      return `${perms}  ${size}  ${name}`;
     });
     return { output: lines.join('\n'), type: 'output' };
   }
@@ -837,6 +891,18 @@ function cmdMan(args: string[]): CommandResult {
     weather: 'weather [city] - Display current weather\n  Uses wttr.in for data',
     sort: 'sort - Sort lines of input (use with pipe)\n  Example: cat file | sort',
     uniq: 'uniq - Remove adjacent duplicate lines (use with pipe)\n  Example: cat file | sort | uniq',
+    top: 'top - Live process viewer\n  Shows running processes with CPU/MEM usage\n  Press Q or ESC to exit',
+    htop: 'htop - Interactive process viewer (alias for top)',
+    ps: 'ps [aux] - List running processes',
+    kill: 'kill [-9] <pid> - Send signal to a process\n  kill <pid>    Terminate process\n  kill -9 <pid> Force kill',
+    systemctl: 'systemctl <command> [service] - Manage system services\n  status <svc>   Show service status\n  start <svc>    Start a service\n  stop <svc>     Stop a service\n  restart <svc>  Restart a service\n  enable <svc>   Enable at boot\n  disable <svc>  Disable at boot\n  list-units     List all services',
+    crontab: 'crontab <option> - Manage scheduled tasks\n  -l  List cron entries\n  -e  Edit crontab (opens nano)',
+    df: 'df [-h] - Show disk usage statistics',
+    free: 'free [-h] - Show memory usage statistics',
+    chmod: 'chmod <mode> <file> - Change file permissions\n  Mode is octal (e.g., 755, 644, 000)\n  Example: chmod 755 script.sh',
+    ping: 'ping <host> - Send ICMP echo requests\n  Known hosts: github.com, google.com, appmaker.xyz, linkedin.com',
+    ssh: 'ssh <server> - Connect to remote server\n  Available: projects-server, skills-server, github, db-server',
+    ifconfig: 'ifconfig - Show network interface configuration',
   };
   const page = manPages[args[0]];
   if (!page) return { output: `No manual entry for ${args[0]}`, type: 'error' };
@@ -851,7 +917,9 @@ function cmdWhich(args: string[]): CommandResult {
     'whoami', 'date', 'clear', 'help', 'about', 'resume', 'skills', 'projects',
     'contact', 'certifications', 'achievements', 'games', 'snake', 'theme',
     'neofetch', 'uname', 'hostname', 'uptime', 'history', 'man', 'which',
-    'matrix', 'hack', 'nano', 'cowsay', 'weather', 'exit', 'sudo'
+    'matrix', 'hack', 'nano', 'cowsay', 'weather', 'exit', 'sudo',
+    'top', 'htop', 'ps', 'kill', 'systemctl', 'crontab',
+    'df', 'free', 'chmod', 'ping', 'ssh', 'ifconfig', 'ip',
   ];
   const results: string[] = [];
   for (const arg of args) {
@@ -862,4 +930,219 @@ function cmdWhich(args: string[]): CommandResult {
     }
   }
   return { output: results.join('\n'), type: 'output' };
+}
+
+// --- System simulation commands ---
+
+function cmdKill(pm: ProcessManager, args: string[]): CommandResult {
+  if (args.length === 0) return { output: 'kill: usage: kill <pid>', type: 'error' };
+  // Skip signal flags
+  const pidArg = args.find(a => !a.startsWith('-'));
+  if (!pidArg) return { output: 'kill: usage: kill <pid>', type: 'error' };
+  const pid = parseInt(pidArg);
+  if (isNaN(pid)) return { output: `kill: invalid pid: ${pidArg}`, type: 'error' };
+  const msg = pm.kill(pid);
+  return { output: msg, type: msg.includes('No such') || msg.includes('not permitted') || msg.includes('Cannot') ? 'error' : 'output' };
+}
+
+function cmdSystemctl(sm: ServiceManager, args: string[]): CommandResult {
+  if (args.length === 0) {
+    return { output: 'Usage: systemctl <command> [service]\nCommands: status, start, stop, restart, enable, disable, list-units', type: 'error' };
+  }
+  const subcmd = args[0];
+  const svcName = args[1];
+
+  switch (subcmd) {
+    case 'status':
+      if (!svcName) return { output: 'Usage: systemctl status <service>', type: 'error' };
+      return { output: sm.formatStatus(svcName), type: 'output' };
+    case 'start': {
+      if (!svcName) return { output: 'Usage: systemctl start <service>', type: 'error' };
+      const msg = sm.start(svcName);
+      return msg ? { output: msg, type: 'error' } : { output: `Started ${svcName}`, type: 'output' };
+    }
+    case 'stop': {
+      if (!svcName) return { output: 'Usage: systemctl stop <service>', type: 'error' };
+      const msg = sm.stop(svcName);
+      return msg ? { output: msg, type: 'error' } : { output: `Stopped ${svcName}`, type: 'output' };
+    }
+    case 'restart': {
+      if (!svcName) return { output: 'Usage: systemctl restart <service>', type: 'error' };
+      const msg = sm.restart(svcName);
+      return msg ? { output: msg, type: 'error' } : { output: `Restarted ${svcName}`, type: 'output' };
+    }
+    case 'enable': {
+      if (!svcName) return { output: 'Usage: systemctl enable <service>', type: 'error' };
+      const msg = sm.enable(svcName);
+      return { output: msg, type: msg.includes('not found') ? 'error' : 'output' };
+    }
+    case 'disable': {
+      if (!svcName) return { output: 'Usage: systemctl disable <service>', type: 'error' };
+      const msg = sm.disable(svcName);
+      return { output: msg, type: msg.includes('not found') ? 'error' : 'output' };
+    }
+    case 'list-units':
+      return { output: sm.formatListUnits(), type: 'output' };
+    default:
+      return { output: `Unknown command: systemctl ${subcmd}`, type: 'error' };
+  }
+}
+
+function cmdCrontab(fs: VirtualFileSystem, args: string[]): CommandResult {
+  const cronPath = '/etc/crontab';
+  // Ensure /etc exists and crontab file exists
+  try { fs.mkdirp('/etc'); } catch { /* exists */ }
+  if (!fs.exists(cronPath)) {
+    fs.writeFile(cronPath, `# m h dom mon dow   command
+0 * * * *     /usr/bin/clear-tmp
+*/5 * * * *   /usr/bin/health-check
+0 0 * * *     /usr/bin/backup-portfolio
+30 2 * * 0    /usr/bin/update-stats`);
+  }
+
+  if (args[0] === '-l') {
+    return { output: fs.readFile(cronPath), type: 'output' };
+  }
+  if (args[0] === '-e') {
+    return { output: '', type: 'output', launchApp: 'nano', launchAppArgs: { filename: cronPath } };
+  }
+  return { output: 'Usage: crontab -l (list) or crontab -e (edit)', type: 'error' };
+}
+
+function cmdDf(fs: VirtualFileSystem): CommandResult {
+  const totalSize = fs.getTotalSize();
+  const usedMB = (totalSize / 1024).toFixed(1);
+  const totalMB = 500;
+  const availMB = (totalMB - parseFloat(usedMB)).toFixed(1);
+  const usePct = Math.round((parseFloat(usedMB) / totalMB) * 100);
+
+  const header = 'Filesystem      Size  Used Avail Use% Mounted on';
+  const lines = [
+    header,
+    `/dev/portfolio  ${totalMB}M  ${usedMB.padStart(4)}M ${availMB.padStart(5)}M  ${String(usePct).padStart(2)}% /`,
+    `/dev/projects    1.0G  340M   660M  34% /home/visitor/projects`,
+    `tmpfs           128M    0M   128M   0% /tmp`,
+    `devtmpfs         64M    0M    64M   0% /dev`,
+  ];
+  return { output: lines.join('\n'), type: 'output' };
+}
+
+function cmdFree(): CommandResult {
+  return {
+    output: `               total        used        free      shared  buff/cache   available
+Mem:           16Gi       8.2Gi       4.1Gi       512Mi       3.7Gi       7.3Gi
+Swap:           4Gi       0.5Gi       3.5Gi`,
+    type: 'output'
+  };
+}
+
+function cmdChmod(fs: VirtualFileSystem, args: string[]): CommandResult {
+  if (args.length < 2) return { output: 'chmod: missing operand\nUsage: chmod <mode> <file>', type: 'error' };
+  const modeStr = args[0];
+  const file = args[1];
+  const mode = parseInt(modeStr, 8);
+  if (isNaN(mode) || mode < 0 || mode > 0o777) {
+    return { output: `chmod: invalid mode: '${modeStr}'`, type: 'error' };
+  }
+  fs.chmod(file, mode);
+  return { output: '', type: 'output' };
+}
+
+const KNOWN_HOSTS: Record<string, string> = {
+  'github.com': '140.82.121.3',
+  'google.com': '142.250.80.46',
+  'appmaker.xyz': '104.21.54.162',
+  'linkedin.com': '13.107.42.14',
+  'twitter.com': '104.244.42.193',
+  'localhost': '127.0.0.1',
+  'abhi-portfolio': '192.168.1.42',
+};
+
+function cmdPing(args: string[]): CommandResult {
+  if (args.length === 0) return { output: 'ping: usage: ping <hostname>', type: 'error' };
+  const host = args[0];
+  const ip = KNOWN_HOSTS[host];
+  if (!ip) return { output: `ping: ${host}: Name or service not known`, type: 'error' };
+
+  return {
+    output: `PING ${host} (${ip}): 56 data bytes`,
+    type: 'output',
+    asyncAction: async () => {
+      const results: string[] = [];
+      let totalTime = 0;
+      let minTime = Infinity;
+      let maxTime = 0;
+
+      for (let i = 0; i < 4; i++) {
+        await new Promise(r => setTimeout(r, 800));
+        const time = 10 + Math.random() * 40;
+        totalTime += time;
+        minTime = Math.min(minTime, time);
+        maxTime = Math.max(maxTime, time);
+        results.push(`64 bytes from ${ip}: icmp_seq=${i} ttl=54 time=${time.toFixed(1)} ms`);
+      }
+
+      const avg = totalTime / 4;
+      results.push('');
+      results.push(`--- ${host} ping statistics ---`);
+      results.push(`4 packets transmitted, 4 received, 0% packet loss`);
+      results.push(`rtt min/avg/max = ${minTime.toFixed(1)}/${avg.toFixed(1)}/${maxTime.toFixed(1)} ms`);
+      return results.join('\n');
+    }
+  };
+}
+
+function cmdSsh(fs: VirtualFileSystem, args: string[]): CommandResult {
+  if (args.length === 0) return { output: 'usage: ssh <hostname>', type: 'error' };
+  const host = args[0];
+
+  const servers: Record<string, () => string> = {
+    'projects-server': () => {
+      const files = fs.listDir('/home/visitor/projects');
+      const content = files.map(f => fs.readFile(`/home/visitor/projects/${f}`)).join('\n\n');
+      return `Connecting to projects-server...\nConnected.\n\nroot@projects-server:~# ls -la /srv/projects/\n\n${content}\n\nConnection to projects-server closed.`;
+    },
+    'skills-server': () => {
+      const skills = fs.readFile('/home/visitor/skills.json');
+      return `Connecting to skills-server...\nConnected.\n\nroot@skills-server:~# cat /etc/skills.conf\n\n${skills}\n\nConnection to skills-server closed.`;
+    },
+    'github': () => {
+      return `Connecting to github.com...\nConnected.\n\ngit@github.com:~# whoami\n  User: abhisawesome\n  Repos: directory-serve, expenser, figmasync, proxyhub\n  Stars: 430+\n  URL: github.com/abhisawesome\n\nConnection to github.com closed.`;
+    },
+    'db-server': () => {
+      return `Connecting to db-server...\nConnected.\n\npostgres@db-server:~# SELECT version();\n  PostgreSQL 16.1\n\npostgres@db-server:~# \\l\n  portfolio_db  | abhi | UTF8\n  analytics_db  | abhi | UTF8\n  cache_db      | abhi | UTF8\n\nConnection to db-server closed.`;
+    },
+  };
+
+  const handler = servers[host];
+  if (!handler) {
+    const ip = KNOWN_HOSTS[host];
+    if (ip) {
+      return { output: `ssh: connect to host ${host} (${ip}): Connection refused`, type: 'error' };
+    }
+    return { output: `ssh: Could not resolve hostname ${host}: Name or service not known`, type: 'error' };
+  }
+
+  return { output: handler(), type: 'output' };
+}
+
+function cmdIfconfig(): CommandResult {
+  return {
+    output: `eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.1.42  netmask 255.255.255.0  broadcast 192.168.1.255
+        inet6 fe80::a00:27ff:fe4e:66a1  prefixlen 64  scopeid 0x20<link>
+        ether 08:00:27:4e:66:a1  txqueuelen 1000  (Ethernet)
+        RX packets 847293  bytes 1187432841 (1.1 GiB)
+        TX packets 524817  bytes 89432156 (85.2 MiB)
+
+docker0: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+        inet 172.17.0.1  netmask 255.255.0.0  broadcast 172.17.255.255
+        ether 02:42:ac:11:00:01  txqueuelen 0  (Ethernet)
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)`,
+    type: 'output'
+  };
 }

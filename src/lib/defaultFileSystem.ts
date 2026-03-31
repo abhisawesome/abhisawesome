@@ -6,6 +6,22 @@ export function createDefaultFileSystem(): VirtualFileSystem {
   // Create directory structure
   fs.mkdirp('/home/visitor/projects');
   fs.mkdirp('/home/visitor/certificates');
+  fs.mkdirp('/etc');
+  fs.mkdirp('/tmp');
+  fs.mkdirp('/var/log');
+
+  // System files
+  fs.writeFile('/etc/crontab', `# m h dom mon dow   command
+0 * * * *     /usr/bin/clear-tmp
+*/5 * * * *   /usr/bin/health-check
+0 0 * * *     /usr/bin/backup-portfolio
+30 2 * * 0    /usr/bin/update-stats`);
+
+  fs.writeFile('/etc/hostname', 'abhi-portfolio');
+  fs.writeFile('/etc/os-release', `NAME="AbhiOS"
+VERSION="2.0.0"
+ID=abhios
+PRETTY_NAME="AbhiOS 2.0.0 (Portfolio Edition)"`);
 
   // about.txt
   fs.writeFile('/home/visitor/about.txt', `Hi! I'm Abhijith V, R&D Engineer at appmaker.xyz

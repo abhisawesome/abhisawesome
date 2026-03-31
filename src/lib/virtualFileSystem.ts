@@ -3,11 +3,13 @@ export interface FileNode {
   content: string;
   createdAt: Date;
   modifiedAt: Date;
+  mode: number; // octal permission e.g. 0o644
 }
 
 export interface DirectoryNode {
   type: 'directory';
   createdAt: Date;
+  mode: number;
 }
 
 export type FSNode = FileNode | DirectoryNode;
@@ -19,7 +21,7 @@ export class VirtualFileSystem {
   private protectedPaths: Set<string> = new Set();
 
   constructor() {
-    this.nodes.set('/', { type: 'directory', createdAt: new Date() });
+    this.nodes.set('/', { type: 'directory', createdAt: new Date(), mode: 0o755 });
     this.mkdirp('/home/visitor');
   }
 
@@ -127,7 +129,7 @@ export class VirtualFileSystem {
     const parentNode = this.nodes.get(parent);
     if (!parentNode) throw new Error(`mkdir: cannot create directory '${path}': No such file or directory`);
     if (parentNode.type !== 'directory') throw new Error(`mkdir: cannot create directory '${path}': Not a directory`);
-    this.nodes.set(resolved, { type: 'directory', createdAt: new Date() });
+    this.nodes.set(resolved, { type: 'directory', createdAt: new Date(), mode: 0o755 });
   }
 
   mkdirp(path: string): void {
@@ -137,7 +139,7 @@ export class VirtualFileSystem {
     for (const part of parts) {
       current += '/' + part;
       if (!this.nodes.has(current)) {
-        this.nodes.set(current, { type: 'directory', createdAt: new Date() });
+        this.nodes.set(current, { type: 'directory', createdAt: new Date(), mode: 0o755 });
       } else {
         const node = this.nodes.get(current)!;
         if (node.type !== 'directory') throw new Error(`mkdir: '${current}' is not a directory`);
@@ -201,6 +203,7 @@ export class VirtualFileSystem {
       content,
       createdAt: existing?.type === 'file' ? existing.createdAt : new Date(),
       modifiedAt: new Date(),
+      mode: existing?.type === 'file' ? existing.mode : 0o644,
     });
   }
 
@@ -319,5 +322,52 @@ export class VirtualFileSystem {
     }
 
     return result;
+  }
+
+  chmod(path: string, mode: number): void {
+    const resolved = this.resolvePath(path);
+    this.checkProtected(resolved, 'chmod');
+    const node = this.nodes.get(resolved);
+    if (!node) throw new Error(`chmod: cannot access '${path}': No such file or directory`);
+    node.mode = mode;
+  }
+
+  getMode(path: string): number {
+    const resolved = this.resolvePath(path);
+    const node = this.nodes.get(resolved);
+    if (!node) return 0o644;
+    return node.mode;
+  }
+
+  getTotalSize(): number {
+    let total = 0;
+    for (const node of this.nodes.values()) {
+      if (node.type === 'file') total += node.content.length;
+    }
+    return total;
+  }
+
+  getFileCount(): number {
+    let count = 0;
+    for (const node of this.nodes.values()) {
+      if (node.type === 'file') count++;
+    }
+    return count;
+  }
+
+  getDirCount(): number {
+    let count = 0;
+    for (const node of this.nodes.values()) {
+      if (node.type === 'directory') count++;
+    }
+    return count;
+  }
+
+  static modeToString(mode: number, isDir: boolean): string {
+    const perms = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx'];
+    const owner = (mode >> 6) & 7;
+    const group = (mode >> 3) & 7;
+    const other = mode & 7;
+    return (isDir ? 'd' : '-') + perms[owner] + perms[group] + perms[other];
   }
 }

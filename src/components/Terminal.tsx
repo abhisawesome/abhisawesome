@@ -8,9 +8,12 @@ import { Screensaver } from './effects/Screensaver';
 import { HackAnimation } from './effects/HackAnimation';
 import { SudoRm } from './effects/SudoRm';
 import { NanoEditor } from './effects/NanoEditor';
+import { TopViewer } from './effects/TopViewer';
 import { createDefaultFileSystem } from '@/lib/defaultFileSystem';
 import { processCommandWithPipes } from '@/lib/commandProcessor';
 import { applyTheme, loadSavedTheme } from '@/lib/themes';
+import { ProcessManager } from '@/lib/processManager';
+import { ServiceManager } from '@/lib/serviceManager';
 
 interface Command {
   text: string;
@@ -42,12 +45,16 @@ const ALL_COMMANDS = [
   'contact', 'certifications', 'achievements', 'games', 'snake', 'theme',
   'neofetch', 'uname', 'hostname', 'uptime', 'history', 'man', 'which',
   'matrix', 'hack', 'nano', 'cowsay', 'weather', 'exit', 'sudo',
+  'top', 'htop', 'ps', 'kill', 'systemctl', 'crontab',
+  'df', 'free', 'chmod', 'ping', 'ssh', 'ifconfig', 'ip',
 ];
 
 const IDLE_TIMEOUT = 30000; // 30 seconds
 
 export const Terminal: React.FC = () => {
   const fsRef = useRef(createDefaultFileSystem());
+  const pmRef = useRef(new ProcessManager());
+  const smRef = useRef(new ServiceManager());
   const [cwd, setCwd] = useState('~');
   const [booting, setBooting] = useState(true);
   const [commands, setCommands] = useState<Command[]>([]);
@@ -111,7 +118,11 @@ export const Terminal: React.FC = () => {
       return;
     }
 
-    const result = processCommandWithPipes(trimmedCmd, fsRef.current, { isGameActive: activeApp !== null });
+    const result = processCommandWithPipes(trimmedCmd, fsRef.current, {
+      isGameActive: activeApp !== null,
+      processManager: pmRef.current,
+      serviceManager: smRef.current,
+    });
 
     if (result.clear) {
       setCommands([]);
@@ -327,6 +338,8 @@ Type "theme" to switch color themes`,
         return <HackAnimation onExit={exitApp} />;
       case 'sudo-rm':
         return <SudoRm onExit={exitApp} />;
+      case 'top':
+        return <TopViewer processManager={pmRef.current} onExit={exitApp} />;
       case 'nano': {
         const filename = appArgs.filename || 'untitled';
         let initialContent = '';
