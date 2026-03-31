@@ -1,68 +1,176 @@
-### Hey 👋🏽, I'm Abhijith V
+<div align="center">
+
+# Hey there! I'm Abhijith V <img src="https://media.giphy.com/media/hvRJCLFzcasrR4ia7z/giphy.gif" width="30px"/>
+
+### R&D Engineer | Full Stack Developer | Open Source Enthusiast
+
+<!-- Typing SVG -->
+<a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=600&size=22&duration=3000&pause=1000&color=00D4AA&center=true&vCenter=true&width=600&height=50&lines=Building+products+that+convert+ideas+to+apps;7%2B+years+crafting+scalable+solutions;Copyright+holder+for+an+encryption+algorithm" alt="Typing SVG" /></a>
+
+<!-- Quick Links -->
 <br/>
 
-Working as R&D Engineer @appmaker.xyz <br/><br/>
+[![Portfolio](https://img.shields.io/badge/Portfolio-00d4aa?style=for-the-badge&logo=googlechrome&logoColor=white)](https://abhisawesome.github.io/abhisawesome/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abhijithv/)
+[![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/abhisawzm)
+[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/abhisawzm/)
 
-<a href="https://www.linkedin.com/in/abhijithv/">
-  <img align="left" alt="LinkdeIN" width="22px" src="https://cdn.jsdelivr.net/npm/simple-icons@v3/icons/linkedin.svg" />
-</a>
-&nbsp;&nbsp;
-<a href="https://www.instagram.com/abhisawzm/">
-  <img align="left" alt="Instagram" width="22px" src="https://cdn.jsdelivr.net/npm/simple-icons@v3/icons/instagram.svg" />
-</a>
-&nbsp;&nbsp;
-<a href="https://twitter.com/abhisawzm">
-  <img align="left" alt="Instagram" width="22px" src="https://cdn.jsdelivr.net/npm/simple-icons@v3/icons/twitter.svg" />
-</a>
+</div>
 
+---
+
+## `> whoami`
+
+```js
+const abhi = {
+    role: "R&D Engineer @ appmaker.xyz",
+    experience: "7+ years",
+    building: "Convert e-commerce sites to native apps - without code",
+    superpower: "Turning complex problems into elegant solutions",
+    copyright: "Encryption Algorithm (Diary No: 4977/2019-CO/SW)",
+    funFact: "My portfolio is a terminal - try typing 'snake' in it!"
+};
+```
+
+<br/>
+
+## `> cat tech-stack.md`
+
+<div align="center">
+
+### Languages & Frameworks
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white)
+![React Native](https://img.shields.io/badge/React_Native-61DAFB?style=flat-square&logo=react&logoColor=black)
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
+![GraphQL](https://img.shields.io/badge/GraphQL-E10098?style=flat-square&logo=graphql&logoColor=white)
+![Bun](https://img.shields.io/badge/Bun-000000?style=flat-square&logo=bun&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000000?style=flat-square&logo=flask&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-777BB4?style=flat-square&logo=php&logoColor=white)
+![C++](https://img.shields.io/badge/C++-00599C?style=flat-square&logo=cplusplus&logoColor=white)
+
+### Databases
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)
+![ClickHouse](https://img.shields.io/badge/ClickHouse-FFCC01?style=flat-square&logo=clickhouse&logoColor=black)
+![BigQuery](https://img.shields.io/badge/BigQuery-669DF6?style=flat-square&logo=googlebigquery&logoColor=white)
+
+### DevOps & Cloud
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white)
+![GCP](https://img.shields.io/badge/GCP-4285F4?style=flat-square&logo=googlecloud&logoColor=white)
+![Azure](https://img.shields.io/badge/Azure-0078D4?style=flat-square&logo=microsoftazure&logoColor=white)
+![Hetzner](https://img.shields.io/badge/Hetzner-D50C2D?style=flat-square&logo=hetzner&logoColor=white)
+![DigitalOcean](https://img.shields.io/badge/DigitalOcean-0080FF?style=flat-square&logo=digitalocean&logoColor=white)
+
+</div>
+
+<br/>
+
+## `> ls projects/`
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### <img src="https://media.giphy.com/media/iY8CRBdQXODJSCERIr/giphy.gif" width="25"> Open Source
+
+| Project | Description | Stars |
+|---------|-------------|-------|
+| [**Directory Serve**](https://github.com/cube-root/directory-serve) | CLI tool to share/send/receive files on a network | ![Stars](https://img.shields.io/github/stars/cube-root/directory-serve?style=flat-square&color=00d4aa) |
+| [**MyExpense**](https://github.com/cube-root/expenser) | Manage bills using Google Sheets as backend | ![Stars](https://img.shields.io/github/stars/cube-root/expenser?style=flat-square&color=00d4aa) |
+| [**FigmaSync**](https://github.com/figmasync/figmasync) | Figma plugin to sync designs with GitHub | - |
+| [**ProxyHub**](https://github.com/cube-root/proxyhub) | Proxy management for multiple configs | [![Live](https://img.shields.io/badge/Live-proxyhub.app-00d4aa?style=flat-square)](https://www.proxyhub.app/) |
+
+</td>
+<td width="50%" valign="top">
+
+### <img src="https://media.giphy.com/media/WUlplcMpOCEmTGBtBW/giphy.gif" width="25"> Notable Projects
+
+| Project | Highlight |
+|---------|-----------|
+| **Gvardios** | Data security system - *Best Project Award* |
+| **MedNet** | Medical encyclopedia with ML disease prediction |
+| **Smart Container** | IoT grocery container with mobile app |
+| **Delivia** | Food ordering platform |
+| **[Terminal Portfolio](https://abhisawesome.github.io/abhisawesome/)** | Interactive terminal-style portfolio site |
+
+</td>
+</tr>
+</table>
+
+<br/>
+
+## `> cat achievements.log`
+
+<div align="center">
+
+```
++-----------------------------+--------------------------------------+
+|        ACHIEVEMENT          |              DETAILS                 |
++-----------------------------+--------------------------------------+
+|  Copyright Holder           |  Encryption Algorithm in India       |
+|                             |  Diary No: 4977/2019-CO/SW          |
++-----------------------------+--------------------------------------+
+|  Best Outgoing Student      |  GEM of CSE Award                    |
++-----------------------------+--------------------------------------+
+|  Best Project Award         |  Gvardios - Data Security System     |
++-----------------------------+--------------------------------------+
+|  Research Paper             |  Published at KETCON                 |
++-----------------------------+--------------------------------------+
+|  Hackathon Wins             |  2nd @ Hack4People 2.0               |
+|                             |  2nd @ HackIn50 hours                |
+|                             |  4th @ OneHack 1.0                   |
++-----------------------------+--------------------------------------+
+```
+
+</div>
+
+<br/>
+
+## `> neofetch`
+
+<div align="center">
+
+<img src="https://github-readme-stats.vercel.app/api?username=abhisawesome&show_icons=true&theme=radical&hide_border=true&bg_color=0d1117&title_color=00d4aa&icon_color=00d4aa&text_color=c9d1d9" width="49%" />
+<img src="https://github-readme-streak-stats.herokuapp.com/?user=abhisawesome&theme=radical&hide_border=true&background=0d1117&ring=00d4aa&fire=00d4aa&currStreakLabel=00d4aa" width="49%" />
+
+<br/>
+
+<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=abhisawesome&layout=compact&theme=radical&hide_border=true&bg_color=0d1117&title_color=00d4aa&text_color=c9d1d9&langs_count=8" width="40%" />
+
+</div>
+
+<br/>
+
+## `> cat /etc/motd`
+
+<div align="center">
+
+```
+ ____________________________________________________
+|                                                    |
+|   "To improve my technical skills through          |
+|    eminent work culture and thereby                |
+|    contributing to the industry."                   |
+|____________________________________________________|
+
+```
+
+<br/>
+
+<img src="https://komarev.com/ghpvc/?username=abhisawesome&color=00d4aa&style=for-the-badge&label=PROFILE+VIEWS" />
 
 <br/><br/>
-**Hands-on Languages :** 
 
-<code><img height="20" src="https://img.shields.io/static/v1?label=NodeJS&color=blue&message=%20&logo=node.js"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=BunJS&color=blue&message=%20&logo=bun.js"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Flask&color=green&message=%20&logo=flask"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Python&color=blue&message=%20&logo=python"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Typescript&color=green&message=%20&logo=typescript"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=ReactJS&color=blue&message=%20&logo=react"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=React-Native&color=green&message=%20&logo=react"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=%20&color=blue&message=%20&logo=c"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=PHP&color=green&message=%20&logo=php"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Graphql&color=blue&message=%20&logo=graphql"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Next.js&color=green&message=%20&logo=next.js"></code>
-<code><img height="20" src="https://img.shields.io/badge/C++-grey.svg?style=flat&logo=cplusplus"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Keystone.js&color=green&message=%20&logo=keystone.js"></code>
+**Check out my [interactive terminal portfolio](https://abhisawesome.github.io/abhisawesome/) - type `help` to explore!**
 
+</div>
 
-**Hands-on Databases :** 
-
-
-<code><img height="20" src="https://img.shields.io/static/v1?label=MYSQL&color=green&message=%20&logo=mysql"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=MongoDB&color=blue&message=%20&logo=mongodb"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Firebase&color=green&message=%20&logo=firebase"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=PostgreSQL&color=blue&message=%20&logo=postgresql"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=BigQuery&color=green&message=%20&logo=bigquery"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=ClickHouse&color=blue&message=%20&logo=clickhouse"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Supabase&color=green&message=%20&logo=supabase"></code>
-
-**DevOps Tools :**  
-
-<code><img height="20" src="https://img.shields.io/static/v1?label=Docker&color=red&message=%20&logo=docker"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Kubernetes&color=red&message=%20&logo=kubernetes"></code>
-
-**Hands-on Plarforms :**  
-<code><img height="20" src="https://img.shields.io/static/v1?label=AWS&color=red&message=%20&logo=amazon"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=GCP&color=red&message=%20&logo=google"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Azure&color=red&message=%20&logo=microsoft"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Hetzner&color=red&message=%20&logo=hetzner"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Vultr&color=red&message=%20&logo=vultr"></code>
-<code><img height="20" src="https://img.shields.io/static/v1?label=Digital Ocean&color=red&message=%20&logo=digitalocean"></code>
-
-
-
-**Copyright**
-
-
-[Copyright](https://copyright.gov.in/frmStatusGenUser.aspx) for an encryption algorithm in India
-
-***Diary number:4977/2019-CO/SW***
+<img src="https://raw.githubusercontent.com/abhisawesome/abhisawesome/output/github-snake-dark.svg" width="100%" alt="Snake animation" />
