@@ -1,10 +1,15 @@
 import type { VirtualFileSystem } from './virtualFileSystem';
+import { themes } from './themes';
 
 export interface CommandResult {
   output: string;
   type: 'output' | 'error';
   clear?: boolean;
   launchGame?: string;
+  launchApp?: string;
+  launchAppArgs?: Record<string, string>;
+  theme?: string;
+  asyncAction?: () => Promise<string>;
 }
 
 export interface CommandContext {
@@ -61,36 +66,81 @@ function formatColumns(items: string[], width = 80): string {
   return result.trimEnd();
 }
 
-export function processCommand(
+// Split on | outside quotes
+function splitPipes(raw: string): string[] {
+  const segments: string[] = [];
+  let current = '';
+  let inSingle = false;
+  let inDouble = false;
+
+  for (const ch of raw) {
+    if (ch === "'" && !inDouble) { inSingle = !inSingle; current += ch; continue; }
+    if (ch === '"' && !inSingle) { inDouble = !inDouble; current += ch; continue; }
+    if (ch === '|' && !inSingle && !inDouble) {
+      segments.push(current);
+      current = '';
+      continue;
+    }
+    current += ch;
+  }
+  segments.push(current);
+  return segments.map(s => s.trim()).filter(Boolean);
+}
+
+export function processCommandWithPipes(
   raw: string,
   fs: VirtualFileSystem,
   context: CommandContext
 ): CommandResult {
+  const pipes = splitPipes(raw);
+  if (pipes.length <= 1) {
+    return processCommand(raw, fs, context);
+  }
+
+  let stdin = '';
+  for (let i = 0; i < pipes.length; i++) {
+    const isLast = i === pipes.length - 1;
+    const result = processCommand(pipes[i], fs, context, stdin, !isLast);
+    if (result.type === 'error') return result;
+    if (result.clear || result.launchGame || result.launchApp) return result;
+    stdin = result.output;
+  }
+  return { output: stdin, type: 'output' };
+}
+
+export function processCommand(
+  raw: string,
+  fs: VirtualFileSystem,
+  context: CommandContext,
+  stdin?: string,
+  isPiped?: boolean,
+): CommandResult {
   const trimmed = raw.trim();
   if (!trimmed) return { output: '', type: 'output' };
 
-  // Parse redirect
+  // Parse redirect (only if not piped to next command)
   let commandPart = trimmed;
   let redirectFile: string | null = null;
   let appendMode = false;
 
-  // Find redirect operator outside quotes
-  let inQ = false;
-  let inDQ = false;
-  for (let i = 0; i < trimmed.length; i++) {
-    const ch = trimmed[i];
-    if (ch === "'" && !inDQ) inQ = !inQ;
-    if (ch === '"' && !inQ) inDQ = !inDQ;
-    if (!inQ && !inDQ && ch === '>') {
-      if (trimmed[i + 1] === '>') {
-        appendMode = true;
-        commandPart = trimmed.slice(0, i).trim();
-        redirectFile = trimmed.slice(i + 2).trim();
-      } else {
-        commandPart = trimmed.slice(0, i).trim();
-        redirectFile = trimmed.slice(i + 1).trim();
+  if (!isPiped) {
+    let inQ = false;
+    let inDQ = false;
+    for (let i = 0; i < trimmed.length; i++) {
+      const ch = trimmed[i];
+      if (ch === "'" && !inDQ) inQ = !inQ;
+      if (ch === '"' && !inQ) inDQ = !inDQ;
+      if (!inQ && !inDQ && ch === '>') {
+        if (trimmed[i + 1] === '>') {
+          appendMode = true;
+          commandPart = trimmed.slice(0, i).trim();
+          redirectFile = trimmed.slice(i + 2).trim();
+        } else {
+          commandPart = trimmed.slice(0, i).trim();
+          redirectFile = trimmed.slice(i + 1).trim();
+        }
+        break;
       }
-      break;
     }
   }
 
@@ -103,145 +153,179 @@ export function processCommand(
   let result: CommandResult;
 
   try {
-    switch (cmd) {
-      case 'help':
-        result = cmdHelp();
-        break;
-      case 'pwd':
-        result = { output: fs.getCwd(), type: 'output' };
-        break;
-      case 'ls':
-      case 'dir':
-        result = cmdLs(fs, args);
-        break;
-      case 'cd':
-        result = cmdCd(fs, args);
-        break;
-      case 'cat':
-        result = cmdCat(fs, args);
-        break;
-      case 'mkdir':
-        result = cmdMkdir(fs, args);
-        break;
-      case 'touch':
-        result = cmdTouch(fs, args);
-        break;
-      case 'rm':
-        result = cmdRm(fs, args);
-        break;
-      case 'rmdir':
-        result = cmdRmdir(fs, args);
-        break;
-      case 'cp':
-        result = cmdCp(fs, args);
-        break;
-      case 'mv':
-        result = cmdMv(fs, args);
-        break;
-      case 'echo':
-        result = { output: args.join(' '), type: 'output' };
-        break;
-      case 'tree':
-        result = { output: fs.getTree(args[0] || undefined).trimEnd(), type: 'output' };
-        break;
-      case 'head':
-        result = cmdHead(fs, args);
-        break;
-      case 'tail':
-        result = cmdTail(fs, args);
-        break;
-      case 'wc':
-        result = cmdWc(fs, args);
-        break;
-      case 'find':
-        result = cmdFind(fs, args);
-        break;
-      case 'grep':
-        result = cmdGrep(fs, args);
-        break;
-      case 'whoami':
-        result = { output: 'visitor@abhi-portfolio', type: 'output' };
-        break;
-      case 'date':
-        result = { output: new Date().toString(), type: 'output' };
-        break;
-      case 'clear':
-        result = { output: '', type: 'output', clear: true };
-        break;
-      case 'theme':
-        result = {
-          output: `Terminal theme: Matrix Green\nColors: Background #0a0a0a, Foreground #00ff00\nFont: Fira Code\n\nThis terminal uses a classic green-on-black theme inspired by retro terminals.`,
-          type: 'output'
-        };
-        break;
-      case 'uname':
-        result = { output: args.includes('-a')
-          ? 'AbhiOS 1.0.0 visitor-portfolio x86_64 GNU/Linux'
-          : 'AbhiOS', type: 'output' };
-        break;
-      case 'hostname':
-        result = { output: 'abhi-portfolio', type: 'output' };
-        break;
-      case 'uptime':
-        result = { output: `up ${Math.floor(Math.random() * 365)} days, ${Math.floor(Math.random() * 24)}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`, type: 'output' };
-        break;
-      case 'history':
-        result = { output: 'Command history is maintained in-session only. Use arrow keys to navigate.', type: 'output' };
-        break;
-      // Portfolio command aliases
-      case 'about':
-        result = { output: fs.readFile('/home/visitor/about.txt'), type: 'output' };
-        break;
-      case 'resume':
-        result = cmdResume(fs);
-        break;
-      case 'skills':
-        result = cmdSkills(fs);
-        break;
-      case 'projects':
-        result = cmdProjects(fs);
-        break;
-      case 'contact':
-        result = { output: fs.readFile('/home/visitor/contact.md'), type: 'output' };
-        break;
-      case 'certifications':
-      case 'certs':
-        result = { output: fs.readFile('/home/visitor/certifications.txt'), type: 'output' };
-        break;
-      case 'achievements':
-        result = { output: fs.readFile('/home/visitor/achievements.txt'), type: 'output' };
-        break;
-      case 'games':
-        result = {
-          output: `Available Games:\n================\n\n1. SNAKE - Classic snake game\n   Command: snake\n   Controls: WASD or Arrow Keys\n\nMore games coming soon!\n\nType the game name to start playing.`,
-          type: 'output'
-        };
-        break;
-      case 'snake':
-        if (context.isGameActive) {
-          result = { output: 'A game is already running. Please exit the current game first.', type: 'error' };
-        } else {
-          result = { output: 'Launching Snake game in fullscreen mode...', type: 'output', launchGame: 'snake' };
-        }
-        break;
-      case 'neofetch':
-        result = cmdNeofetch();
-        break;
-      case 'man':
-        result = cmdMan(args);
-        break;
-      case 'which':
-        result = cmdWhich(args);
-        break;
-      default:
-        result = { output: `Command not found: ${tokens[0]}. Type "help" for available commands.`, type: 'error' };
+    // Handle sudo specially
+    if (cmd === 'sudo' && args.join(' ').match(/rm\s+(-rf|-fr|-r\s*-f|-f\s*-r)\s+\//)) {
+      result = { output: '', type: 'output', launchApp: 'sudo-rm' };
+    } else if (cmd === 'sudo') {
+      result = { output: `[sudo] password for visitor: \nvisitor is not in the sudoers file. This incident will be reported.`, type: 'error' };
+    } else {
+      switch (cmd) {
+        case 'help':
+          result = cmdHelp();
+          break;
+        case 'pwd':
+          result = { output: fs.getCwd(), type: 'output' };
+          break;
+        case 'ls':
+        case 'dir':
+          result = cmdLs(fs, args);
+          break;
+        case 'cd':
+          result = cmdCd(fs, args);
+          break;
+        case 'cat':
+          result = cmdCat(fs, args, stdin);
+          break;
+        case 'mkdir':
+          result = cmdMkdir(fs, args);
+          break;
+        case 'touch':
+          result = cmdTouch(fs, args);
+          break;
+        case 'rm':
+          result = cmdRm(fs, args);
+          break;
+        case 'rmdir':
+          result = cmdRmdir(fs, args);
+          break;
+        case 'cp':
+          result = cmdCp(fs, args);
+          break;
+        case 'mv':
+          result = cmdMv(fs, args);
+          break;
+        case 'echo':
+          result = { output: args.join(' '), type: 'output' };
+          break;
+        case 'tree':
+          result = { output: fs.getTree(args[0] || undefined).trimEnd(), type: 'output' };
+          break;
+        case 'head':
+          result = cmdHead(fs, args, stdin);
+          break;
+        case 'tail':
+          result = cmdTail(fs, args, stdin);
+          break;
+        case 'wc':
+          result = cmdWc(fs, args, stdin);
+          break;
+        case 'find':
+          result = cmdFind(fs, args);
+          break;
+        case 'grep':
+          result = cmdGrep(fs, args, stdin);
+          break;
+        case 'sort':
+          result = cmdSort(args, stdin);
+          break;
+        case 'uniq':
+          result = cmdUniq(stdin);
+          break;
+        case 'whoami':
+          result = { output: 'visitor@abhi-portfolio', type: 'output' };
+          break;
+        case 'date':
+          result = { output: new Date().toString(), type: 'output' };
+          break;
+        case 'clear':
+          result = { output: '', type: 'output', clear: true };
+          break;
+        case 'theme':
+          result = cmdTheme(args);
+          break;
+        case 'uname':
+          result = { output: args.includes('-a')
+            ? 'AbhiOS 2.0.0 visitor-portfolio x86_64 GNU/Linux'
+            : 'AbhiOS', type: 'output' };
+          break;
+        case 'hostname':
+          result = { output: 'abhi-portfolio', type: 'output' };
+          break;
+        case 'uptime':
+          result = { output: `up ${Math.floor(Math.random() * 365)} days, ${Math.floor(Math.random() * 24)}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`, type: 'output' };
+          break;
+        case 'history':
+          result = { output: 'Command history is maintained in-session only. Use arrow keys to navigate.', type: 'output' };
+          break;
+        // Portfolio aliases
+        case 'about':
+          result = { output: fs.readFile('/home/visitor/about.txt'), type: 'output' };
+          break;
+        case 'resume':
+          result = cmdResume(fs);
+          break;
+        case 'skills':
+          result = cmdSkills(fs);
+          break;
+        case 'projects':
+          result = cmdProjects(fs);
+          break;
+        case 'contact':
+          result = { output: fs.readFile('/home/visitor/contact.md'), type: 'output' };
+          break;
+        case 'certifications':
+        case 'certs':
+          result = { output: fs.readFile('/home/visitor/certifications.txt'), type: 'output' };
+          break;
+        case 'achievements':
+          result = { output: fs.readFile('/home/visitor/achievements.txt'), type: 'output' };
+          break;
+        // Games & effects
+        case 'games':
+          result = {
+            output: `Available Games:\n================\n\n1. SNAKE - Classic snake game\n   Command: snake\n   Controls: WASD or Arrow Keys\n\nMore games coming soon!\n\nType the game name to start playing.`,
+            type: 'output'
+          };
+          break;
+        case 'snake':
+          if (context.isGameActive) {
+            result = { output: 'A game is already running. Please exit the current game first.', type: 'error' };
+          } else {
+            result = { output: 'Launching Snake game in fullscreen mode...', type: 'output', launchGame: 'snake' };
+          }
+          break;
+        case 'matrix':
+          result = { output: 'Entering the Matrix...', type: 'output', launchApp: 'matrix' };
+          break;
+        case 'hack':
+          result = { output: 'Initiating hack sequence...', type: 'output', launchApp: 'hack' };
+          break;
+        case 'nano':
+          if (!args[0]) {
+            result = { output: 'Usage: nano <filename>', type: 'error' };
+          } else {
+            result = { output: '', type: 'output', launchApp: 'nano', launchAppArgs: { filename: args[0] } };
+          }
+          break;
+        case 'cowsay':
+          result = cmdCowsay(args);
+          break;
+        case 'exit':
+        case 'logout':
+          result = { output: '', type: 'output', launchApp: 'exit-glitch' };
+          break;
+        case 'weather':
+          result = cmdWeather(args);
+          break;
+        case 'neofetch':
+          result = cmdNeofetch();
+          break;
+        case 'man':
+          result = cmdMan(args);
+          break;
+        case 'which':
+          result = cmdWhich(args);
+          break;
+        default:
+          result = { output: `Command not found: ${tokens[0]}. Type "help" for available commands.`, type: 'error' };
+      }
     }
   } catch (e) {
     result = { output: (e as Error).message, type: 'error' };
   }
 
   // Handle redirect
-  if (redirectFile && result.type === 'output' && !result.clear && !result.launchGame) {
+  if (redirectFile && result.type === 'output' && !result.clear && !result.launchGame && !result.launchApp) {
     try {
       if (appendMode) {
         fs.appendFile(redirectFile, result.output + '\n');
@@ -278,7 +362,10 @@ function cmdHelp(): CommandResult {
   head [-n N] <file>          - Show first N lines
   tail [-n N] <file>          - Show last N lines
   wc <file>        - Word/line/char count
+  sort             - Sort input lines (use with pipe)
+  uniq             - Remove duplicate lines (use with pipe)
   echo <text>      - Print text (supports > and >>)
+  nano <file>      - Edit file in nano editor
 
   PORTFOLIO:
   about            - Learn about me
@@ -297,14 +384,28 @@ function cmdHelp(): CommandResult {
   uptime           - Show uptime
   history          - Command history info
   neofetch         - System info display
+  weather [city]   - Show weather info
   man <cmd>        - Manual for command
   which <cmd>      - Show command location
-  theme            - Terminal theme info
+  theme [name]     - Switch color theme
   clear            - Clear the terminal
+
+  FUN:
+  cowsay <text>    - ASCII cow says your text
+  matrix           - Matrix rain animation
+  hack             - Movie-style hacking animation
+  exit             - Try to exit...
+  sudo rm -rf /    - Don't do it...
 
   GAMES:
   games            - List available games
-  snake            - Play Snake game`,
+  snake            - Play Snake game
+
+  TIPS:
+  Use | to pipe commands: cat file | grep pattern
+  Use > to redirect: echo hello > file.txt
+  Use >> to append: echo world >> file.txt
+  Press Tab for auto-completion`,
     type: 'output'
   };
 }
@@ -370,8 +471,11 @@ function cmdCd(fs: VirtualFileSystem, args: string[]): CommandResult {
   return { output: '', type: 'output' };
 }
 
-function cmdCat(fs: VirtualFileSystem, args: string[]): CommandResult {
-  if (args.length === 0) return { output: 'cat: missing operand', type: 'error' };
+function cmdCat(fs: VirtualFileSystem, args: string[], stdin?: string): CommandResult {
+  if (args.length === 0) {
+    if (stdin !== undefined) return { output: stdin, type: 'output' };
+    return { output: 'cat: missing operand', type: 'error' };
+  }
   const outputs: string[] = [];
   for (const file of args) {
     outputs.push(fs.readFile(file));
@@ -412,7 +516,7 @@ function cmdRm(fs: VirtualFileSystem, args: string[]): CommandResult {
   const targets: string[] = [];
   for (const arg of args) {
     if (arg === '-r' || arg === '-rf' || arg === '-fr') recursive = true;
-    else if (arg === '-f') { /* force - just ignore errors */ }
+    else if (arg === '-f') { /* force */ }
     else targets.push(arg);
   }
   if (targets.length === 0) return { output: 'rm: missing operand', type: 'error' };
@@ -446,33 +550,39 @@ function cmdMv(fs: VirtualFileSystem, args: string[]): CommandResult {
   return { output: '', type: 'output' };
 }
 
-function cmdHead(fs: VirtualFileSystem, args: string[]): CommandResult {
+function cmdHead(fs: VirtualFileSystem, args: string[], stdin?: string): CommandResult {
   let n = 10;
   let file = '';
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '-n' && args[i + 1]) { n = parseInt(args[++i]); }
     else file = args[i];
   }
-  if (!file) return { output: 'head: missing operand', type: 'error' };
-  const content = fs.readFile(file);
+  const content = file ? fs.readFile(file) : (stdin || '');
+  if (!file && stdin === undefined) return { output: 'head: missing operand', type: 'error' };
   const lines = content.split('\n').slice(0, n);
   return { output: lines.join('\n'), type: 'output' };
 }
 
-function cmdTail(fs: VirtualFileSystem, args: string[]): CommandResult {
+function cmdTail(fs: VirtualFileSystem, args: string[], stdin?: string): CommandResult {
   let n = 10;
   let file = '';
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '-n' && args[i + 1]) { n = parseInt(args[++i]); }
     else file = args[i];
   }
-  if (!file) return { output: 'tail: missing operand', type: 'error' };
-  const content = fs.readFile(file);
+  const content = file ? fs.readFile(file) : (stdin || '');
+  if (!file && stdin === undefined) return { output: 'tail: missing operand', type: 'error' };
   const lines = content.split('\n').slice(-n);
   return { output: lines.join('\n'), type: 'output' };
 }
 
-function cmdWc(fs: VirtualFileSystem, args: string[]): CommandResult {
+function cmdWc(fs: VirtualFileSystem, args: string[], stdin?: string): CommandResult {
+  if (args.length === 0 && stdin !== undefined) {
+    const lines = stdin.split('\n').length;
+    const words = stdin.split(/\s+/).filter(Boolean).length;
+    const chars = stdin.length;
+    return { output: `  ${lines}  ${words}  ${chars}`, type: 'output' };
+  }
   if (args.length === 0) return { output: 'wc: missing operand', type: 'error' };
   const results: string[] = [];
   for (const file of args) {
@@ -500,7 +610,6 @@ function cmdFind(fs: VirtualFileSystem, args: string[]): CommandResult {
   const resolved = fs.resolvePath(searchPath);
   const results: string[] = [];
 
-  // Walk the tree
   const walk = (path: string) => {
     const name = path.split('/').pop() || '';
     if (namePattern) {
@@ -519,7 +628,7 @@ function cmdFind(fs: VirtualFileSystem, args: string[]): CommandResult {
           const childPath = path === '/' ? `/${child}` : `${path}/${child}`;
           walk(childPath);
         }
-      } catch { /* skip inaccessible */ }
+      } catch { /* skip */ }
     }
   };
 
@@ -527,15 +636,120 @@ function cmdFind(fs: VirtualFileSystem, args: string[]): CommandResult {
   return { output: results.join('\n') || 'No matches found.', type: 'output' };
 }
 
-function cmdGrep(fs: VirtualFileSystem, args: string[]): CommandResult {
-  if (args.length < 2) return { output: 'usage: grep <pattern> <file>', type: 'error' };
+function cmdGrep(fs: VirtualFileSystem, args: string[], stdin?: string): CommandResult {
+  if (args.length < 1) return { output: 'usage: grep <pattern> [file]', type: 'error' };
   const pattern = args[0];
   const file = args[1];
-  const content = fs.readFile(file);
+
+  let content: string;
+  if (file) {
+    content = fs.readFile(file);
+  } else if (stdin !== undefined) {
+    content = stdin;
+  } else {
+    return { output: 'usage: grep <pattern> <file>', type: 'error' };
+  }
+
   const regex = new RegExp(pattern, 'gi');
   const matches = content.split('\n').filter(line => regex.test(line));
   if (matches.length === 0) return { output: '', type: 'output' };
   return { output: matches.join('\n'), type: 'output' };
+}
+
+function cmdSort(args: string[], stdin?: string): CommandResult {
+  const content = stdin || args.join(' ');
+  if (!content) return { output: '', type: 'output' };
+  const lines = content.split('\n').sort();
+  return { output: lines.join('\n'), type: 'output' };
+}
+
+function cmdUniq(stdin?: string): CommandResult {
+  if (!stdin) return { output: '', type: 'output' };
+  const lines = stdin.split('\n');
+  const unique = lines.filter((line, i) => i === 0 || line !== lines[i - 1]);
+  return { output: unique.join('\n'), type: 'output' };
+}
+
+function cmdTheme(args: string[]): CommandResult {
+  if (args.length === 0) {
+    const list = themes.map(t => `  ${t.name.padEnd(15)} ${t.label}`).join('\n');
+    return {
+      output: `Available themes:\n\n${list}\n\nUsage: theme <name>`,
+      type: 'output'
+    };
+  }
+  const name = args[0].toLowerCase();
+  const theme = themes.find(t => t.name === name);
+  if (!theme) {
+    return { output: `Unknown theme: ${name}. Type "theme" to see available themes.`, type: 'error' };
+  }
+  return { output: `Theme switched to ${theme.label}`, type: 'output', theme: name };
+}
+
+function cmdCowsay(args: string[]): CommandResult {
+  const msg = args.join(' ') || 'Moo!';
+  const lines: string[] = [];
+  const maxWidth = 40;
+
+  // Word wrap
+  const words = msg.split(' ');
+  let currentLine = '';
+  for (const word of words) {
+    if (currentLine.length + word.length + 1 > maxWidth) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = currentLine ? currentLine + ' ' + word : word;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+
+  const width = Math.max(...lines.map(l => l.length));
+  const top = ' ' + '_'.repeat(width + 2);
+  const bottom = ' ' + '-'.repeat(width + 2);
+
+  let bubble: string;
+  if (lines.length === 1) {
+    bubble = `${top}\n< ${lines[0].padEnd(width)} >\n${bottom}`;
+  } else {
+    const mid = lines.map((line, i) => {
+      const padded = line.padEnd(width);
+      if (i === 0) return `/ ${padded} \\`;
+      if (i === lines.length - 1) return `\\ ${padded} /`;
+      return `| ${padded} |`;
+    }).join('\n');
+    bubble = `${top}\n${mid}\n${bottom}`;
+  }
+
+  const cow = `        \\   ^__^
+         \\  (oo)\\_______
+            (__)\\       )\\/\\
+                ||----w |
+                ||     ||`;
+
+  return { output: `${bubble}\n${cow}`, type: 'output' };
+}
+
+function cmdWeather(args: string[]): CommandResult {
+  const city = args.join('+') || '';
+  const url = city
+    ? `https://wttr.in/${encodeURIComponent(city)}?format=4`
+    : 'https://wttr.in/?format=4';
+
+  return {
+    output: 'Fetching weather data...',
+    type: 'output',
+    asyncAction: async () => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to fetch');
+        const text = await response.text();
+        return text.trim();
+      } catch {
+        return 'Error: Could not fetch weather data. Try: weather London';
+      }
+    }
+  };
 }
 
 function cmdResume(fs: VirtualFileSystem): CommandResult {
@@ -582,12 +796,12 @@ function cmdNeofetch(): CommandResult {
     output: `
        ▄▄▄       visitor@abhi-portfolio
       ▄████▄     -------------------------
-     ▄██████▄    OS: AbhiOS 1.0.0 (Portfolio Edition)
+     ▄██████▄    OS: AbhiOS 2.0.0 (Portfolio Edition)
     ████▀▀████   Host: github.com/abhisawesome
    ████    ████  Kernel: React 19 + TypeScript
-  ████▄    ████  Shell: terminal-portfolio v1.0
+  ████▄    ████  Shell: terminal-portfolio v2.0
    ████▄▄████▀   Resolution: Responsive
-    ▀████████▀   Theme: Matrix Green [Dark]
+    ▀████████▀   Theme: Customizable (type "theme")
      ▀██████▀    Terminal: Custom React Terminal
       ▀████▀     CPU: 7+ years of experience
        ▀▀▀       Memory: Full Stack (Node, React, Python)
@@ -611,10 +825,18 @@ function cmdMan(args: string[]): CommandResult {
     touch: 'touch <file> - Create empty file or update timestamp',
     tree: 'tree [path] - Display directory tree structure',
     find: 'find [path] -name <pattern> - Find files by name\n  Supports * and ? wildcards',
-    grep: 'grep <pattern> <file> - Search for pattern in file',
+    grep: 'grep <pattern> [file] - Search for pattern in file or piped input',
     head: 'head [-n N] <file> - Show first N lines (default 10)',
     tail: 'tail [-n N] <file> - Show last N lines (default 10)',
     wc: 'wc <file> - Print line, word, and byte counts',
+    nano: 'nano <file> - Open file in nano text editor\n  Ctrl+X  Exit\n  Ctrl+O  Save\n  Ctrl+G  Help',
+    cowsay: 'cowsay <text> - Make an ASCII cow say your text',
+    theme: 'theme [name] - List or switch terminal themes\n  Available: matrix, dracula, catppuccin, nord, retro-amber, cyberpunk',
+    matrix: 'matrix - Display Matrix rain animation\n  Press ESC or Q to exit',
+    hack: 'hack - Simulate a movie-style hacking sequence',
+    weather: 'weather [city] - Display current weather\n  Uses wttr.in for data',
+    sort: 'sort - Sort lines of input (use with pipe)\n  Example: cat file | sort',
+    uniq: 'uniq - Remove adjacent duplicate lines (use with pipe)\n  Example: cat file | sort | uniq',
   };
   const page = manPages[args[0]];
   if (!page) return { output: `No manual entry for ${args[0]}`, type: 'error' };
@@ -625,10 +847,11 @@ function cmdWhich(args: string[]): CommandResult {
   if (args.length === 0) return { output: 'which: missing operand', type: 'error' };
   const builtins = [
     'ls', 'cd', 'pwd', 'cat', 'mkdir', 'touch', 'rm', 'rmdir', 'cp', 'mv',
-    'echo', 'tree', 'find', 'grep', 'head', 'tail', 'wc', 'whoami', 'date',
-    'clear', 'help', 'about', 'resume', 'skills', 'projects', 'contact',
-    'certifications', 'achievements', 'games', 'snake', 'theme', 'neofetch',
-    'uname', 'hostname', 'uptime', 'history', 'man', 'which'
+    'echo', 'tree', 'find', 'grep', 'head', 'tail', 'wc', 'sort', 'uniq',
+    'whoami', 'date', 'clear', 'help', 'about', 'resume', 'skills', 'projects',
+    'contact', 'certifications', 'achievements', 'games', 'snake', 'theme',
+    'neofetch', 'uname', 'hostname', 'uptime', 'history', 'man', 'which',
+    'matrix', 'hack', 'nano', 'cowsay', 'weather', 'exit', 'sudo'
   ];
   const results: string[] = [];
   for (const arg of args) {

@@ -1,9 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SnakeGame } from './games/SnakeGame';
+import { BootSequence } from './BootSequence';
+import { MatrixRain } from './effects/MatrixRain';
+import { Screensaver } from './effects/Screensaver';
+import { HackAnimation } from './effects/HackAnimation';
+import { SudoRm } from './effects/SudoRm';
+import { NanoEditor } from './effects/NanoEditor';
 import { createDefaultFileSystem } from '@/lib/defaultFileSystem';
-import { processCommand } from '@/lib/commandProcessor';
+import { processCommandWithPipes } from '@/lib/commandProcessor';
+import { applyTheme, loadSavedTheme } from '@/lib/themes';
 
 interface Command {
   text: string;
@@ -22,56 +29,73 @@ const QUICK_COMMANDS = [
   { label: 'ls', cmd: 'ls' },
   { label: 'tree', cmd: 'tree' },
   { label: 'neofetch', cmd: 'neofetch' },
+  { label: 'theme', cmd: 'theme' },
+  { label: 'cowsay hi', cmd: 'cowsay hi' },
+  { label: 'matrix', cmd: 'matrix' },
   { label: 'snake', cmd: 'snake' },
 ];
+
+const ALL_COMMANDS = [
+  'ls', 'cd', 'pwd', 'cat', 'mkdir', 'touch', 'rm', 'rmdir', 'cp', 'mv',
+  'echo', 'tree', 'find', 'grep', 'head', 'tail', 'wc', 'sort', 'uniq',
+  'whoami', 'date', 'clear', 'help', 'about', 'resume', 'skills', 'projects',
+  'contact', 'certifications', 'achievements', 'games', 'snake', 'theme',
+  'neofetch', 'uname', 'hostname', 'uptime', 'history', 'man', 'which',
+  'matrix', 'hack', 'nano', 'cowsay', 'weather', 'exit', 'sudo',
+];
+
+const IDLE_TIMEOUT = 30000; // 30 seconds
 
 export const Terminal: React.FC = () => {
   const fsRef = useRef(createDefaultFileSystem());
   const [cwd, setCwd] = useState('~');
-  const [commands, setCommands] = useState<Command[]>([
-    {
-      text: `Initializing terminal...`,
-      timestamp: new Date(),
-      type: 'output'
-    },
-    {
-      text: `[OK] Terminal v2.0.0 loaded`,
-      timestamp: new Date(),
-      type: 'output'
-    },
-    {
-      text: `[OK] Virtual filesystem mounted`,
-      timestamp: new Date(),
-      type: 'output'
-    },
-    {
-      text: `[OK] Portfolio modules loaded`,
-      timestamp: new Date(),
-      type: 'output'
-    },
-    {
-      text: `
-Welcome to Abhijith V's Interactive Terminal Portfolio
-=====================================================
-R&D Engineer @appmaker.xyz | 7+ years experience
-
-Type "help" for available commands
-Type "ls" to explore the filesystem
-Type "games" to see available games`,
-      timestamp: new Date(),
-      type: 'output'
-    }
-  ]);
+  const [booting, setBooting] = useState(true);
+  const [commands, setCommands] = useState<Command[]>([]);
   const [currentCommand, setCurrentCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [isGameActive, setIsGameActive] = useState(false);
+  const [activeApp, setActiveApp] = useState<string | null>(null);
+  const [appArgs, setAppArgs] = useState<Record<string, string>>({});
   const [tabState, setTabState] = useState<{ partial: string; matches: string[]; index: number } | null>(null);
   const [showQuickCmds, setShowQuickCmds] = useState(false);
+  const [glitching, setGlitching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const handleCommand = (cmd: string) => {
+  // Load saved theme
+  useEffect(() => {
+    loadSavedTheme();
+  }, []);
+
+  // Idle timer for screensaver
+  const resetIdleTimer = useCallback(() => {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    if (activeApp || booting) return;
+    idleTimerRef.current = setTimeout(() => {
+      if (!activeApp && !booting) setActiveApp('screensaver');
+    }, IDLE_TIMEOUT);
+  }, [activeApp, booting]);
+
+  useEffect(() => {
+    resetIdleTimer();
+    const events = ['keydown', 'mousemove', 'click', 'touchstart'];
+    const handler = () => resetIdleTimer();
+    events.forEach(e => document.addEventListener(e, handler));
+    return () => {
+      events.forEach(e => document.removeEventListener(e, handler));
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    };
+  }, [resetIdleTimer]);
+
+  const exitApp = useCallback(() => {
+    setActiveApp(null);
+    setAppArgs({});
+    resetIdleTimer();
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }, [resetIdleTimer]);
+
+  const handleCommand = useCallback(async (cmd: string) => {
     const trimmedCmd = cmd.trim();
 
     setCommands(prev => [...prev, { text: `${cwd} $ ${cmd}`, timestamp: new Date(), type: 'input' }]);
@@ -80,13 +104,14 @@ Type "games" to see available games`,
     }
     setHistoryIndex(-1);
     setTabState(null);
+    resetIdleTimer();
 
     if (!trimmedCmd) {
       setCurrentCommand('');
       return;
     }
 
-    const result = processCommand(trimmedCmd, fsRef.current, { isGameActive });
+    const result = processCommandWithPipes(trimmedCmd, fsRef.current, { isGameActive: activeApp !== null });
 
     if (result.clear) {
       setCommands([]);
@@ -94,57 +119,57 @@ Type "games" to see available games`,
       return;
     }
 
-    if (result.launchGame === 'snake') {
-      setCommands(prev => [...prev, {
-        text: result.output,
-        timestamp: new Date(),
-        type: 'output'
-      }]);
+    // Handle theme change
+    if (result.theme) {
+      applyTheme(result.theme);
+    }
 
-      setTimeout(() => {
-        setIsGameActive(true);
-        const handleGameOver = (score: number) => {
-          setIsGameActive(false);
-          setCommands(prev => [...prev, {
-            text: `Game Over! Your score: ${score}`,
-            timestamp: new Date(),
-            type: 'output'
-          }]);
-        };
-        const handleExit = () => {
-          setIsGameActive(false);
-          setCommands(prev => [...prev, {
-            text: 'Game exited.',
-            timestamp: new Date(),
-            type: 'output'
-          }]);
-        };
+    // Handle app launch
+    if (result.launchApp) {
+      if (result.output) {
+        setCommands(prev => [...prev, { text: result.output, timestamp: new Date(), type: 'output' }]);
+      }
+
+      if (result.launchApp === 'exit-glitch') {
+        setGlitching(true);
         setCommands(prev => [...prev, {
-          text: '',
+          text: "Nice try! You can never leave... 😈",
           timestamp: new Date(),
-          type: 'output',
-          component: (
-            <SnakeGame
-              fullscreen={true}
-              onGameOver={handleGameOver}
-              onExit={handleExit}
-            />
-          )
+          type: 'error'
         }]);
+        setTimeout(() => setGlitching(false), 1500);
+      } else {
+        setAppArgs(result.launchAppArgs || {});
+        setTimeout(() => setActiveApp(result.launchApp!), 100);
+      }
+      setCurrentCommand('');
+      return;
+    }
+
+    if (result.launchGame === 'snake') {
+      setCommands(prev => [...prev, { text: result.output, timestamp: new Date(), type: 'output' }]);
+      setTimeout(() => {
+        setActiveApp('snake');
       }, 500);
-    } else if (result.output) {
-      setCommands(prev => [...prev, {
-        text: result.output,
-        timestamp: new Date(),
-        type: result.type
-      }]);
+      setCurrentCommand('');
+      return;
+    }
+
+    if (result.output) {
+      setCommands(prev => [...prev, { text: result.output, timestamp: new Date(), type: result.type }]);
+    }
+
+    // Handle async actions (weather)
+    if (result.asyncAction) {
+      const asyncResult = await result.asyncAction();
+      setCommands(prev => [...prev, { text: asyncResult, timestamp: new Date(), type: 'output' }]);
     }
 
     setCwd(fsRef.current.getDisplayCwd());
     setCurrentCommand('');
-  };
+  }, [cwd, activeApp, resetIdleTimer]);
 
-  const handleTabComplete = () => {
+  const handleTabComplete = useCallback(() => {
     const input = currentCommand;
     const tokens = input.split(' ');
     const partial = tokens[tokens.length - 1] || '';
@@ -173,14 +198,7 @@ Type "games" to see available games`,
       }
 
       if (tokens.length === 1) {
-        const cmdNames = [
-          'ls', 'cd', 'pwd', 'cat', 'mkdir', 'touch', 'rm', 'rmdir', 'cp', 'mv',
-          'echo', 'tree', 'find', 'grep', 'head', 'tail', 'wc', 'whoami', 'date',
-          'clear', 'help', 'about', 'resume', 'skills', 'projects', 'contact',
-          'certifications', 'achievements', 'games', 'snake', 'theme', 'neofetch',
-          'uname', 'hostname', 'uptime', 'history', 'man', 'which'
-        ];
-        const matches = cmdNames.filter(c => c.startsWith(prefix.toLowerCase()));
+        const matches = ALL_COMMANDS.filter(c => c.startsWith(prefix.toLowerCase()));
         if (matches.length === 1) {
           setCurrentCommand(matches[0] + ' ');
           setTabState(null);
@@ -215,9 +233,9 @@ Type "games" to see available games`,
         setCurrentCommand(newTokens.join(' '));
       }
     } catch {
-      // Silently ignore tab complete errors
+      // ignore
     }
-  };
+  }, [currentCommand, tabState]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -266,8 +284,106 @@ Type "games" to see available games`,
     inputRef.current?.focus();
   };
 
+  // Boot sequence
+  if (booting) {
+    return <BootSequence onComplete={() => {
+      setBooting(false);
+      setCommands([{
+        text: `Welcome to Abhijith V's Interactive Terminal Portfolio
+=====================================================
+R&D Engineer @appmaker.xyz | 7+ years experience
+
+Type "help" for available commands
+Type "ls" to explore the filesystem
+Type "theme" to switch color themes`,
+        timestamp: new Date(),
+        type: 'output'
+      }]);
+    }} />;
+  }
+
+  // Render active fullscreen apps
+  const renderActiveApp = () => {
+    switch (activeApp) {
+      case 'snake':
+        return (
+          <SnakeGame
+            fullscreen={true}
+            onGameOver={(score: number) => {
+              exitApp();
+              setCommands(prev => [...prev, { text: `Game Over! Your score: ${score}`, timestamp: new Date(), type: 'output' }]);
+            }}
+            onExit={() => {
+              exitApp();
+              setCommands(prev => [...prev, { text: 'Game exited.', timestamp: new Date(), type: 'output' }]);
+            }}
+          />
+        );
+      case 'matrix':
+        return <MatrixRain onExit={exitApp} />;
+      case 'screensaver':
+        return <Screensaver onExit={exitApp} />;
+      case 'hack':
+        return <HackAnimation onExit={exitApp} />;
+      case 'sudo-rm':
+        return <SudoRm onExit={exitApp} />;
+      case 'nano': {
+        const filename = appArgs.filename || 'untitled';
+        let initialContent = '';
+        let readOnly = false;
+        try {
+          initialContent = fsRef.current.readFile(filename);
+        } catch {
+          // New file
+        }
+        // Check if protected
+        try {
+          fsRef.current.writeFile('__nano_test_' + Date.now(), '');
+          fsRef.current.deleteFile('__nano_test_' + Date.now());
+        } catch { /* ignore */ }
+
+        const resolved = fsRef.current.resolvePath(filename);
+        const node = fsRef.current.getNode(resolved);
+        if (node) {
+          try {
+            // Test write permission by checking if it's protected
+            const testContent = initialContent;
+            fsRef.current.writeFile(filename, testContent);
+            readOnly = false;
+          } catch {
+            readOnly = true;
+          }
+        }
+
+        return (
+          <NanoEditor
+            filename={filename}
+            initialContent={initialContent}
+            readOnly={readOnly}
+            onSave={(content: string) => {
+              try {
+                fsRef.current.writeFile(filename, content);
+                return null;
+              } catch (e) {
+                return (e as Error).message;
+              }
+            }}
+            onExit={exitApp}
+          />
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="w-full h-[100dvh] bg-background flex flex-col overflow-hidden">
+    <div className={cn(
+      "w-full h-[100dvh] bg-background flex flex-col overflow-hidden transition-all duration-100",
+      glitching && "animate-glitch"
+    )}>
+      {renderActiveApp()}
+
       {/* Terminal window */}
       <div className="flex-1 flex flex-col max-w-5xl w-full mx-auto p-1 sm:p-2 md:p-4 min-h-0">
         <div className="flex-1 flex flex-col border border-border/60 rounded-lg overflow-hidden shadow-[0_0_40px_rgba(0,255,100,0.06)] min-h-0">
@@ -284,7 +400,6 @@ Type "games" to see available games`,
                 visitor@abhi-portfolio: {cwd}
               </span>
             </div>
-            {/* Mobile quick commands toggle */}
             <button
               onClick={(e) => { e.stopPropagation(); setShowQuickCmds(!showQuickCmds); }}
               className="sm:hidden text-muted-foreground hover:text-foreground p-0.5 transition-colors"
@@ -339,7 +454,7 @@ Type "games" to see available games`,
                   </div>
                 ))}
 
-                {!isGameActive && (
+                {!activeApp && (
                   <div className="flex items-center font-mono text-[11px] sm:text-xs md:text-sm">
                     <span className="text-primary shrink-0 mr-1">{cwd}</span>
                     <span className="text-primary shrink-0 mr-1.5">$</span>
@@ -365,10 +480,10 @@ Type "games" to see available games`,
         </div>
 
         {/* Mobile input helpers */}
-        {!isGameActive && (
+        {!activeApp && (
           <div className="sm:hidden flex gap-1 px-1 py-1.5 shrink-0">
             <button
-              onClick={() => { handleCommand('clear'); }}
+              onClick={() => handleCommand('clear')}
               className="px-2 py-1.5 text-[10px] rounded bg-secondary/60 text-muted-foreground border border-border/40 active:bg-secondary transition-colors"
             >
               CLR
@@ -401,7 +516,7 @@ Type "games" to see available games`,
               DN
             </button>
             <button
-              onClick={() => handleTabComplete()}
+              onClick={handleTabComplete}
               className="px-2 py-1.5 text-[10px] rounded bg-secondary/60 text-muted-foreground border border-border/40 active:bg-secondary transition-colors"
             >
               TAB
