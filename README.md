@@ -142,7 +142,7 @@ const abhi = {
 
 <br/>
 
-<img src="https://github-profile-trophy.vercel.app/?username=abhisawesome&theme=darkhub&no-frame=true&no-bg=true&column=4&margin-w=15&margin-h=15" width="60%" />
+<img src="https://github-profile-summary-cards.vercel.app/api/cards/profile-details?username=abhisawesome&theme=github_dark" width="70%" />
 
 </div>
 
