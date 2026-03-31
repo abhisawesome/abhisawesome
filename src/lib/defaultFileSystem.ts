@@ -187,5 +187,21 @@ Live: abhisawesome.github.io/abhisawesome/`);
   fs.writeFile('/home/visitor/certificates/python-ds-ibm.txt', 'Python for Data Science - IBM');
   fs.writeFile('/home/visitor/certificates/ml-ibm.txt', 'Machine Learning - IBM');
 
+  // Protect all default portfolio files and directories
+  const protectedPaths = [
+    '/home/visitor/about.txt',
+    '/home/visitor/resume.txt',
+    '/home/visitor/skills.json',
+    '/home/visitor/contact.md',
+    '/home/visitor/achievements.txt',
+    '/home/visitor/certifications.txt',
+    '/home/visitor/README.md',
+    '/home/visitor/projects',
+    '/home/visitor/certificates',
+  ];
+  for (const p of protectedPaths) {
+    fs.protect(p);
+  }
+
   return fs;
 }

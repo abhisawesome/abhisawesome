@@ -30,6 +30,19 @@
 body {
   @apply bg-background text-foreground font-mono;
   font-feature-settings: "liga" on;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* Hide scrollbar for quick commands on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 @layer utilities {

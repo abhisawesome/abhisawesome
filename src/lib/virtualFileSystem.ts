@@ -16,10 +16,28 @@ export class VirtualFileSystem {
   private nodes: Map<string, FSNode> = new Map();
   private cwd = '/home/visitor';
   private prevCwd = '/home/visitor';
+  private protectedPaths: Set<string> = new Set();
 
   constructor() {
     this.nodes.set('/', { type: 'directory', createdAt: new Date() });
     this.mkdirp('/home/visitor');
+  }
+
+  protect(path: string): void {
+    this.protectedPaths.add(this.resolvePath(path));
+  }
+
+  private checkProtected(resolved: string, op: string): void {
+    if (this.protectedPaths.has(resolved)) {
+      throw new Error(`${op}: cannot modify '${resolved.split('/').pop()}': Permission denied (read-only)`);
+    }
+    // Also check if it's inside a protected directory
+    for (const p of this.protectedPaths) {
+      const node = this.nodes.get(p);
+      if (node?.type === 'directory' && resolved.startsWith(p + '/')) {
+        throw new Error(`${op}: cannot modify '${resolved.split('/').pop()}': Permission denied (read-only)`);
+      }
+    }
   }
 
   normalizePath(path: string): string {
@@ -130,6 +148,7 @@ export class VirtualFileSystem {
   rmdir(path: string): void {
     const resolved = this.resolvePath(path);
     if (resolved === '/') throw new Error(`rmdir: cannot remove '/': Permission denied`);
+    this.checkProtected(resolved, 'rmdir');
     const node = this.nodes.get(resolved);
     if (!node) throw new Error(`rmdir: failed to remove '${path}': No such file or directory`);
     if (node.type !== 'directory') throw new Error(`rmdir: failed to remove '${path}': Not a directory`);
@@ -197,6 +216,7 @@ export class VirtualFileSystem {
 
   deleteFile(path: string): void {
     const resolved = this.resolvePath(path);
+    this.checkProtected(resolved, 'rm');
     const node = this.nodes.get(resolved);
     if (!node) throw new Error(`rm: cannot remove '${path}': No such file or directory`);
     if (node.type === 'directory') throw new Error(`rm: cannot remove '${path}': Is a directory`);
@@ -207,6 +227,7 @@ export class VirtualFileSystem {
     const resolved = this.resolvePath(path);
     if (resolved === '/') throw new Error(`rm: cannot remove '/': Permission denied`);
     if (resolved === '/home/visitor') throw new Error(`rm: cannot remove home directory`);
+    this.checkProtected(resolved, 'rm');
     const node = this.nodes.get(resolved);
     if (!node) throw new Error(`rm: cannot remove '${path}': No such file or directory`);
 
@@ -241,6 +262,7 @@ export class VirtualFileSystem {
 
   move(src: string, dest: string): void {
     const srcResolved = this.resolvePath(src);
+    this.checkProtected(srcResolved, 'mv');
     const srcNode = this.nodes.get(srcResolved);
     if (!srcNode) throw new Error(`mv: cannot stat '${src}': No such file or directory`);
 
