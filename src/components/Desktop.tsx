@@ -55,6 +55,8 @@ export const Desktop = () => {
   const [windowCount, setWindowCount] = useState(1);
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
+  const [locked, setLocked] = useState(false);
+  const [loginTime, setLoginTime] = useState(new Date());
 
   const dragRef = useRef<{ id: string; startX: number; startY: number; winX: number; winY: number } | null>(null);
   const resizeRef = useRef<{ id: string; edge: string; startX: number; startY: number; winX: number; winY: number; winW: number; winH: number } | null>(null);
@@ -228,6 +230,65 @@ export const Desktop = () => {
 
   const formatDate = (d: Date) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
+  const handleUnlock = () => {
+    setLocked(false);
+  };
+
+  // Keep lock screen time updated
+  useEffect(() => {
+    if (locked) {
+      const t = setInterval(() => setLoginTime(new Date()), 1000);
+      return () => clearInterval(t);
+    }
+  }, [locked]);
+
+  if (locked) {
+    return (
+      <div className="w-full h-[100dvh] overflow-hidden flex flex-col relative text-white select-none cursor-pointer"
+        onClick={handleUnlock} onKeyDown={(e) => { if (e.key === 'Enter') handleUnlock(); }} tabIndex={0}>
+        {/* Wallpaper (blurred) */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, #1b2838 0%, #223049 30%, #2a4158 55%, #1e3a50 75%, #152a3a 100%)' }} />
+          <div className="absolute w-[800px] h-[800px] rounded-full opacity-20 blur-[120px]" style={{ background: 'radial-gradient(circle, #3b6fa0 0%, transparent 70%)', top: '-15%', right: '-10%' }} />
+          <div className="absolute w-[600px] h-[600px] rounded-full opacity-15 blur-[100px]" style={{ background: 'radial-gradient(circle, #2d5a7b 0%, transparent 70%)', bottom: '-10%', left: '-5%' }} />
+          <div className="absolute inset-0 backdrop-blur-sm bg-black/30" />
+        </div>
+
+        {/* Lock screen content */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-6">
+          {/* Time */}
+          <div className="text-center mb-4">
+            <div className="text-6xl sm:text-8xl font-light tracking-tight">
+              {loginTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </div>
+            <div className="text-lg sm:text-xl text-white/60 mt-2">
+              {loginTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </div>
+          </div>
+
+          {/* Avatar */}
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-[#3b6fa0] to-[#2a4158] flex items-center justify-center border-2 border-white/20 shadow-lg">
+            <span className="text-3xl sm:text-4xl font-semibold">A</span>
+          </div>
+
+          {/* Username */}
+          <div className="text-xl sm:text-2xl font-medium">Abhijith V</div>
+
+          {/* Unlock button */}
+          <button
+            onClick={handleUnlock}
+            autoFocus
+            className="px-8 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-sm transition-colors backdrop-blur-md"
+          >
+            Click to Unlock
+          </button>
+
+          <p className="text-white/30 text-xs mt-4">Click anywhere or press Enter to unlock</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-[100dvh] overflow-hidden flex flex-col relative text-white select-none"
       onContextMenu={(e) => e.preventDefault()}>
@@ -246,7 +307,7 @@ export const Desktop = () => {
         <div className="flex-1 text-center"><span className="text-[11px] sm:text-xs font-medium cursor-default">{formatDate(currentTime)} {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
         <div className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs text-neutral-300">
           <span className="hidden sm:inline">visitor</span>
-          <Power className="w-3.5 h-3.5 hover:text-white cursor-pointer transition-colors" />
+          <Power className="w-3.5 h-3.5 hover:text-white cursor-pointer transition-colors" onClick={() => setLocked(true)} />
         </div>
       </div>
 
