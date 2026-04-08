@@ -63,28 +63,28 @@ export const TextEditor: React.FC<TextEditorProps> = ({ fileSystem, filepath, on
       <div className="flex items-center gap-1 px-2 py-1 bg-[#3c3c3c] border-b border-[#1e1e1e] text-xs shrink-0">
         <button
           onClick={handleSave}
-          className={`px-2 py-0.5 rounded transition-colors ${readOnly ? 'text-[#585858] cursor-not-allowed' : 'hover:bg-[#505050]'}`}
+          className={`px-2 py-0.5 rounded transition-colors shrink-0 ${readOnly ? 'text-[#585858] cursor-not-allowed' : 'hover:bg-[#505050]'}`}
           disabled={readOnly}
         >
           Save
         </button>
         <button
           onClick={onClose}
-          className="px-2 py-0.5 hover:bg-[#505050] rounded transition-colors"
+          className="px-2 py-0.5 hover:bg-[#505050] rounded transition-colors shrink-0"
         >
           Close
         </button>
-        <div className="flex-1" />
-        <span className={`text-[10px] ${readOnly ? 'text-[#e06c75]' : modified ? 'text-[#e5c07b]' : 'text-[#808080]'}`}>
-          {readOnly ? 'Read-Only (Protected)' : modified ? 'Modified' : 'Saved'}
+        <div className="flex-1 min-w-0" />
+        <span className={`text-[10px] truncate shrink-0 ${readOnly ? 'text-[#e06c75]' : modified ? 'text-[#e5c07b]' : 'text-[#808080]'}`}>
+          {readOnly ? 'Protected' : modified ? 'Modified' : 'Saved'}
         </span>
       </div>
 
       {/* Tab bar */}
       <div className="flex items-center bg-[#252526] border-b border-[#1e1e1e] shrink-0">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1e1e1e] text-xs border-r border-[#1e1e1e]">
-          <FileIcon ext={filename.split('.').pop() || ''} />
-          <span>{filename}</span>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1e1e1e] text-xs border-r border-[#1e1e1e] max-w-[80vw]">
+          <div className="shrink-0"><FileIcon ext={filename.split('.').pop() || ''} /></div>
+          <span className="truncate">{filename}</span>
           {modified && <span className="text-[#e5c07b]">*</span>}
           {readOnly && <span className="text-[#e06c75] text-[9px] ml-1">[RO]</span>}
         </div>

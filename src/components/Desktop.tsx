@@ -33,6 +33,7 @@ function getFileIcon(f: string) { const e = f.split('.').pop() || ''; return FIL
 function getFileIconColor(f: string) { const e = f.split('.').pop() || ''; return FILE_ICON_COLORS[e] || FILE_ICON_COLORS.default; }
 
 function isMobile() { return window.innerWidth < 640; }
+function getIsMobileView() { return typeof window !== 'undefined' ? window.innerWidth < 640 : false; }
 
 function getDefaultRect(type: string, offset: number) {
   const vw = window.innerWidth, vh = window.innerHeight;
@@ -47,11 +48,15 @@ export const Desktop = () => {
   const pmRef = useRef(new ProcessManager());
   const smRef = useRef(new ServiceManager());
 
-  const [windows, setWindows] = useState<WindowState[]>(() => {
-    const r = getDefaultRect('terminal', 0);
-    return [{ id: 'terminal-1', type: 'terminal', title: 'Terminal', minimized: false, maximized: isMobile(), zIndex: 1, ...r }];
-  });
-  const [nextZIndex, setNextZIndex] = useState(2);
+  const [isMobileView, setIsMobileView] = useState(getIsMobileView);
+  useEffect(() => {
+    const handleRes = () => setIsMobileView(getIsMobileView());
+    window.addEventListener('resize', handleRes);
+    return () => window.removeEventListener('resize', handleRes);
+  }, []);
+
+  const [windows, setWindows] = useState<WindowState[]>([]);
+  const [nextZIndex, setNextZIndex] = useState(1);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [desktopFiles, setDesktopFiles] = useState<string[]>([]);
   const [showActivities, setShowActivities] = useState(false);
@@ -287,9 +292,13 @@ export const Desktop = () => {
 
       {/* Top Bar */}
       <div className="relative z-50 h-7 sm:h-8 bg-black/70 backdrop-blur-xl flex items-center px-2 sm:px-4 text-xs shrink-0">
-        <button onClick={() => setShowActivities(!showActivities)} className="px-2 sm:px-3 py-0.5 hover:bg-white/10 active:bg-white/20 rounded transition-colors font-medium text-[11px] sm:text-xs">Activities</button>
-        <div className="flex-1 text-center"><span className="text-[11px] sm:text-xs font-medium cursor-default">{formatDate(currentTime)} {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
-        <div className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs text-neutral-300">
+        <button onClick={() => setShowActivities(!showActivities)} className="px-2 sm:px-3 py-0.5 hover:bg-white/10 active:bg-white/20 rounded transition-colors font-medium text-[11px] sm:text-xs shrink-0">Activities</button>
+        <div className="flex-1 text-center min-w-0 px-2">
+          <span className="text-[10px] sm:text-xs font-medium cursor-default truncate block">
+            {isMobileView ? currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : `${formatDate(currentTime)} ${currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 sm:gap-3 text-[11px] sm:text-xs text-neutral-300 shrink-0">
           <span className="hidden sm:inline">visitor</span>
           <button className="p-1 hover:bg-white/10 active:bg-white/20 rounded transition-colors" onClick={() => setLocked(true)}>
             <Power className="w-3.5 h-3.5" />
@@ -300,8 +309,8 @@ export const Desktop = () => {
       {/* Desktop Area */}
       <div className="relative flex-1 min-h-0" onClick={() => setSelectedIcon(null)} onContextMenu={showDesktopContext}
         {...startLongPress((x, y) => showDesktopContextAt(x, y))}>
-        {/* Desktop Icons - horizontal grid on mobile, vertical column on desktop */}
-        <div className="absolute top-2 left-2 right-2 sm:top-4 sm:left-4 sm:right-auto flex flex-row flex-wrap sm:flex-col gap-1 z-10">
+        {/* Desktop Icons - grid on mobile, vertical column on desktop */}
+        <div className="absolute top-2 left-2 right-2 bottom-16 sm:bottom-auto sm:top-4 sm:left-4 sm:right-auto flex flex-row flex-wrap sm:flex-col content-start gap-1 sm:gap-2 z-0">
           {/* App icons */}
           {[
             { label: 'Terminal', icon: TerminalIcon, color: 'text-green-400', action: openTerminal },
@@ -353,10 +362,10 @@ export const Desktop = () => {
         {/* Windows */}
         {windows.map(win => {
           if (win.minimized) return null;
-          const isMax = win.maximized || isMobile(); // Always maximized on mobile
+          const isMax = win.maximized || isMobileView; // Always maximized on mobile
           return (
             <div key={win.id}
-              className={cn("absolute flex flex-col", isMax ? "rounded-none" : "rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10")}
+              className={cn("absolute flex flex-col bg-[#1e1e1e]", isMax ? "rounded-none" : "rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10 overflow-hidden backdrop-blur-3xl")}
               style={isMax ? { inset: 0, zIndex: win.zIndex } : { left: win.x, top: win.y, width: win.w, height: win.h, zIndex: win.zIndex }}
               onMouseDown={() => bringToFront(win.id)}>
               {/* Resize edges - desktop only */}
@@ -379,12 +388,12 @@ export const Desktop = () => {
                   <button onClick={(e) => { e.stopPropagation(); minimizeWindow(win.id); }} className="w-3 h-3 sm:w-3 sm:h-3 rounded-full bg-[#febc2e] hover:brightness-110 transition-all focus:outline-none" />
                   <button onClick={(e) => { e.stopPropagation(); toggleMaximize(win.id); }} className="w-3 h-3 sm:w-3 sm:h-3 rounded-full bg-[#28c840] hover:brightness-110 transition-all focus:outline-none hidden sm:block" />
                 </div>
-                <div className="flex-1 text-center pointer-events-none min-w-0">
+                <div className="flex-1 text-center pointer-events-none min-w-0 px-2">
                   <span className="text-[10px] sm:text-xs text-neutral-400 truncate block">
                     {win.type === 'terminal' ? 'Terminal' : win.type === 'filemanager' ? 'Files' : win.type === 'browser' ? (win.title || 'Browser') : win.title}
                   </span>
                 </div>
-                <div className="w-8 sm:w-12" />
+                <div className="w-10 sm:w-12 shrink-0" />
               </div>
               {/* Content */}
               <div className="flex-1 min-h-0 overflow-hidden">
@@ -412,7 +421,7 @@ export const Desktop = () => {
                   e.stopPropagation();
                   setWindows(prev => prev.map(w => w.id === win.id ? { ...w, minimized: false, zIndex: nextZIndex } : w));
                   setNextZIndex(n => n + 1); setShowActivities(false);
-                }} className="w-28 h-20 sm:w-48 sm:h-32 bg-neutral-800/80 rounded-lg border border-white/10 hover:border-white/30 active:bg-neutral-700/80 transition-all flex items-center justify-center flex-col gap-1 sm:gap-2">
+                }} className="w-24 h-20 sm:w-48 sm:h-32 bg-neutral-800/80 rounded-lg border border-white/10 hover:border-white/30 active:bg-neutral-700/80 transition-all flex items-center justify-center flex-col gap-1 sm:gap-2">
                   {win.type === 'terminal' ? <TerminalIcon className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
                     : win.type === 'filemanager' ? <FolderOpen className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
                     : win.type === 'browser' ? <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400" />
@@ -455,9 +464,9 @@ export const Desktop = () => {
             { type: 'filemanager' as const, icon: FolderOpen, color: 'text-yellow-400', action: () => openFileManager(), label: 'Files' },
             { type: 'browser' as const, icon: Globe, color: 'text-blue-400', action: openBrowser, label: 'Browser' },
           ].map(item => (
-            <button key={item.type} onClick={item.action} className="relative p-1.5 sm:p-2 hover:bg-white/10 active:bg-white/15 rounded-lg sm:rounded-xl transition-all group shrink-0" title={item.label}>
-              <item.icon className={cn("w-5 h-5 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform", item.color)} />
-              {windows.some(w => w.type === item.type && !w.minimized) && <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white/60" />}
+            <button key={item.type} onClick={item.action} className="relative p-2 sm:p-2 hover:bg-white/10 active:bg-white/15 rounded-lg sm:rounded-xl transition-all group shrink-0" title={item.label}>
+              <item.icon className={cn("w-6 h-6 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform", item.color)} />
+              {windows.some(w => w.type === item.type && !w.minimized) && <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white/60" />}
             </button>
           ))}
           {windows.filter(w => w.type === 'editor').length > 0 && <div className="w-px h-5 sm:h-7 bg-white/10 mx-0.5 shrink-0" />}
@@ -465,9 +474,9 @@ export const Desktop = () => {
             const Icon = getFileIcon(win.title);
             const color = getFileIconColor(win.title);
             return (
-              <button key={win.id} onClick={() => toggleMinimize(win.id)} className="relative p-1.5 sm:p-2 hover:bg-white/10 active:bg-white/15 rounded-lg sm:rounded-xl transition-all group shrink-0" title={win.title}>
-                <Icon className={cn("w-5 h-5 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform", color)} />
-                {!win.minimized && <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white/60" />}
+              <button key={win.id} onClick={() => toggleMinimize(win.id)} className="relative p-2 sm:p-2 hover:bg-white/10 active:bg-white/15 rounded-lg sm:rounded-xl transition-all group shrink-0" title={win.title}>
+                <Icon className={cn("w-6 h-6 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform", color)} />
+                {!win.minimized && <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white/60" />}
               </button>
             );
           })}

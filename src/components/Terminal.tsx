@@ -269,6 +269,12 @@ Type "theme" to switch color themes`,
         setHistoryIndex(-1);
         setCurrentCommand('');
       }
+    } else if (e.key === 'c' && e.ctrlKey) {
+      e.preventDefault();
+      setCommands(prev => [...prev, { command: currentCommand + '^C', output: '', isError: false }]);
+      setCurrentCommand('');
+      setHistoryIndex(-1);
+      setTabState(null);
     } else if (e.key === 'l' && e.ctrlKey) {
       e.preventDefault();
       setCommands([]);
@@ -379,14 +385,14 @@ Type "theme" to switch color themes`,
 
           {/* Info bar */}
           <div className="flex items-center gap-2 px-3 py-1 sm:py-1.5 bg-secondary/40 border-b border-border/30 shrink-0 select-none">
-            <div className="flex-1 text-center">
-              <span className="text-[10px] sm:text-xs text-muted-foreground tracking-wider">
+            <div className="flex-1 text-center min-w-0 px-2">
+              <span className="text-[10px] sm:text-xs text-muted-foreground tracking-wider truncate block">
                 visitor@abhi-portfolio: {cwd}
               </span>
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setShowQuickCmds(!showQuickCmds); }}
-              className="sm:hidden text-muted-foreground hover:text-foreground p-0.5 transition-colors"
+              className="sm:hidden text-muted-foreground hover:text-foreground p-0.5 transition-colors shrink-0"
               aria-label="Quick commands"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

@@ -128,7 +128,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ fileSystem, onOpenFile
         </button>
 
         {/* Path breadcrumb */}
-        <div className="flex-1 flex items-center gap-0.5 mx-2 px-2 py-0.5 bg-[#11111b] rounded text-xs overflow-hidden">
+        <div className="flex-1 flex items-center gap-0.5 mx-1 sm:mx-2 px-2 py-0.5 bg-[#11111b] rounded text-xs overflow-x-auto scrollbar-hide min-w-0">
           {currentPath === '/' ? (
             <span className="text-[#a6adc8]">/</span>
           ) : (
