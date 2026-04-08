@@ -271,7 +271,7 @@ Type "theme" to switch color themes`,
       }
     } else if (e.key === 'c' && e.ctrlKey) {
       e.preventDefault();
-      setCommands(prev => [...prev, { command: currentCommand + '^C', output: '', isError: false }]);
+      setCommands(prev => [...prev, { text: `${cwd} $ ${currentCommand}^C`, timestamp: new Date(), type: 'input' }]);
       setCurrentCommand('');
       setHistoryIndex(-1);
       setTabState(null);
