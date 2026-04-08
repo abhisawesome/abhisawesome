@@ -3,7 +3,7 @@ import { Terminal } from './Terminal';
 import { TextEditor } from './ui/TextEditor';
 import { FileManager } from './ui/FileManager';
 import { Browser } from './ui/Browser';
-import { Terminal as TerminalIcon, Power, FileText, FileCode, File, FolderOpen, Globe } from 'lucide-react';
+import { Terminal as TerminalIcon, Power, FileText, FileCode, File, FolderOpen, Globe, Shield, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createDefaultFileSystem } from '@/lib/defaultFileSystem';
 import { VirtualFileSystem } from '@/lib/virtualFileSystem';
@@ -17,6 +17,7 @@ interface WindowState {
   minimized: boolean;
   maximized: boolean;
   filepath?: string;
+  url?: string;
   zIndex: number;
   x: number; y: number; w: number; h: number;
 }
@@ -117,20 +118,21 @@ export const Desktop = () => {
     setNextZIndex(n => n + 1);
   };
 
-  const createWindow = (type: WindowState['type'], title: string, filepath?: string) => {
-    const existing = windows.find(w => w.type === type && (type !== 'editor' || w.filepath === filepath));
+  const createWindow = (type: WindowState['type'], title: string, filepath?: string, url?: string) => {
+    const existing = windows.find(w => w.type === type && (type !== 'editor' || w.filepath === filepath) && (type !== 'browser' || w.url === url));
     if (existing) { setWindows(prev => prev.map(w => w.id === existing.id ? { ...w, minimized: false, zIndex: nextZIndex } : w)); setNextZIndex(n => n + 1); return; }
     const r = getDefaultRect(type, windowCount % 5);
     setWindowCount(c => c + 1);
     // Auto-maximize on mobile
     const maximized = isMobile();
-    setWindows(prev => [...prev, { id: `${type}-${Date.now()}`, type, title, minimized: false, maximized, filepath, zIndex: nextZIndex, ...r }]);
+    setWindows(prev => [...prev, { id: `${type}-${Date.now()}`, type, title, minimized: false, maximized, filepath, url, zIndex: nextZIndex, ...r }]);
     setNextZIndex(n => n + 1);
   };
 
   const openTerminal = () => createWindow('terminal', 'Terminal');
   const openFileManager = (p?: string) => createWindow('filemanager', 'Files', p || '/home/visitor');
   const openBrowser = () => createWindow('browser', 'Browser');
+  const openBrowserWithUrl = (title: string, url: string) => createWindow('browser', title, undefined, url);
   const openFileInEditor = (filepath: string) => createWindow('editor', filepath.split('/').pop() || 'file', filepath);
 
   const startDrag = (id: string, e: React.MouseEvent) => {
@@ -305,6 +307,8 @@ export const Desktop = () => {
             { label: 'Terminal', icon: TerminalIcon, color: 'text-green-400', action: openTerminal },
             { label: 'Files', icon: FolderOpen, color: 'text-yellow-400', action: () => openFileManager() },
             { label: 'Browser', icon: Globe, color: 'text-blue-400', action: openBrowser },
+            { label: 'ProxyHub', icon: Shield, color: 'text-purple-400', action: () => openBrowserWithUrl('ProxyHub', 'proxyhub.app') },
+            { label: 'dir-serve', icon: Package, color: 'text-orange-400', action: () => openBrowserWithUrl('directory-serve', 'github.com/cube-root/directory-serve') },
           ].map(item => (
             <button key={item.label}
               onClick={(e) => { e.stopPropagation(); setSelectedIcon(item.label); if (isMobile()) item.action(); }}
@@ -377,7 +381,7 @@ export const Desktop = () => {
                 </div>
                 <div className="flex-1 text-center pointer-events-none min-w-0">
                   <span className="text-[10px] sm:text-xs text-neutral-400 truncate block">
-                    {win.type === 'terminal' ? 'Terminal' : win.type === 'filemanager' ? 'Files' : win.type === 'browser' ? 'Browser' : win.title}
+                    {win.type === 'terminal' ? 'Terminal' : win.type === 'filemanager' ? 'Files' : win.type === 'browser' ? (win.title || 'Browser') : win.title}
                   </span>
                 </div>
                 <div className="w-8 sm:w-12" />
@@ -392,7 +396,7 @@ export const Desktop = () => {
                 ) : win.type === 'filemanager' ? (
                   <FileManager fileSystem={fsRef.current} initialPath={win.filepath} onOpenFile={(fp) => openFileInEditor(fp)} onClose={() => closeWindow(win.id)} />
                 ) : win.type === 'browser' ? (
-                  <Browser onClose={() => closeWindow(win.id)} />
+                  <Browser onClose={() => closeWindow(win.id)} initialUrl={win.url} />
                 ) : null}
               </div>
             </div>

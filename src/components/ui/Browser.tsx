@@ -11,11 +11,12 @@ const BOOKMARKS = [
 
 interface BrowserProps {
   onClose: () => void;
+  initialUrl?: string;
 }
 
-export const Browser: React.FC<BrowserProps> = () => {
-  const [url, setUrl] = useState(RESUME_URL);
-  const [inputUrl, setInputUrl] = useState(RESUME_URL);
+export const Browser: React.FC<BrowserProps> = ({ initialUrl }) => {
+  const [url, setUrl] = useState(initialUrl || RESUME_URL);
+  const [inputUrl, setInputUrl] = useState(initialUrl || RESUME_URL);
 
   const navigate = (newUrl: string) => {
     setUrl(newUrl);
@@ -78,7 +79,11 @@ export const Browser: React.FC<BrowserProps> = () => {
 
       {/* Page content */}
       <div className="flex-1 overflow-auto bg-white min-h-0">
-        {url.includes('resume') || url === RESUME_URL ? (
+        {url.includes('proxyhub.app') ? (
+          <iframe src="https://proxyhub.app/" className="w-full h-full border-0" title="ProxyHub" />
+        ) : url.includes('directory-serve') ? (
+          <DirectoryServePage />
+        ) : url.includes('resume') || url === RESUME_URL ? (
           <ResumePage />
         ) : url.includes('github') ? (
           <PlaceholderPage title="GitHub" subtitle="github.com/abhisawesome" />
@@ -100,6 +105,139 @@ function PlaceholderPage({ title, subtitle }: { title: string; subtitle: string 
         <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
         <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
         <p className="text-xs text-gray-400 mt-4">External links are not loaded in this browser</p>
+      </div>
+    </div>
+  );
+}
+
+function DirectoryServePage() {
+  return (
+    <div className="min-h-full bg-[#0d1117]" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" }}>
+      {/* GitHub-style repo header */}
+      <div className="border-b border-[#30363d] bg-[#161b22] px-4 sm:px-6 py-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-2 text-sm">
+            <svg className="w-4 h-4 text-[#8b949e]" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z" /></svg>
+            <a href="#" className="text-[#58a6ff] hover:underline">cube-root</a>
+            <span className="text-[#8b949e]">/</span>
+            <a href="#" className="text-[#58a6ff] hover:underline font-semibold">directory-serve</a>
+            <span className="ml-2 px-1.5 py-0.5 text-[10px] border border-[#30363d] rounded-full text-[#8b949e]">Public</span>
+          </div>
+          <p className="text-[#8b949e] text-sm mt-2">CLI tool to send and receive files on a network to a server</p>
+          <div className="flex items-center gap-4 mt-3 text-xs text-[#8b949e]">
+            <span className="flex items-center gap-1"><svg className="w-4 h-4 text-[#e3b341]" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" /></svg> 431</span>
+            <span className="flex items-center gap-1"><svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z" /></svg> Forks</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-[#f1e05a] inline-block"></span> JavaScript</span>
+          </div>
+        </div>
+      </div>
+
+      {/* README content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+        <div className="border border-[#30363d] rounded-md">
+          <div className="flex items-center gap-2 px-4 py-3 bg-[#161b22] border-b border-[#30363d] rounded-t-md">
+            <svg className="w-4 h-4 text-[#8b949e]" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z" /></svg>
+            <span className="text-sm font-semibold text-[#c9d1d9]">README.md</span>
+          </div>
+          <div className="p-6 text-[#c9d1d9]">
+            {/* Title */}
+            <h1 className="text-2xl font-semibold text-[#c9d1d9] pb-2 border-b border-[#30363d] mb-4">Directory Serve</h1>
+            <p className="text-sm text-[#8b949e] mb-6">A CLI library for sending and receiving files from your Android and iOS devices.</p>
+
+            {/* Badges */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <span className="px-2 py-0.5 bg-[#238636] text-white text-xs rounded-md font-medium">npm v1.3.6</span>
+              <span className="px-2 py-0.5 bg-[#1f6feb] text-white text-xs rounded-md font-medium">431 stars</span>
+              <span className="px-2 py-0.5 bg-[#8957e5] text-white text-xs rounded-md font-medium">Node.js</span>
+            </div>
+
+            {/* Install */}
+            <h2 className="text-lg font-semibold text-[#c9d1d9] pb-1 border-b border-[#30363d] mb-3 mt-6">Installation</h2>
+            <div className="bg-[#161b22] border border-[#30363d] rounded-md px-4 py-3 mb-4 font-mono text-sm">
+              <span className="text-[#8b949e]">$</span> <span className="text-[#79c0ff]">npm install -g directory-serve</span>
+            </div>
+
+            {/* Usage */}
+            <h2 className="text-lg font-semibold text-[#c9d1d9] pb-1 border-b border-[#30363d] mb-3 mt-6">Usage</h2>
+            <div className="bg-[#161b22] border border-[#30363d] rounded-md px-4 py-3 mb-2 font-mono text-sm">
+              <span className="text-[#8b949e]">$</span> <span className="text-[#79c0ff]">directory-serve</span> <span className="text-[#a5d6ff]">/path-of-directory</span>
+            </div>
+            <p className="text-sm text-[#8b949e] mb-4">Or without global installation:</p>
+            <div className="bg-[#161b22] border border-[#30363d] rounded-md px-4 py-3 mb-4 font-mono text-sm">
+              <span className="text-[#8b949e]">$</span> <span className="text-[#79c0ff]">npx directory-serve</span> <span className="text-[#a5d6ff]">.</span>
+            </div>
+
+            {/* Features */}
+            <h2 className="text-lg font-semibold text-[#c9d1d9] pb-1 border-b border-[#30363d] mb-3 mt-6">Features</h2>
+            <ul className="space-y-2 text-sm mb-6">
+              {[
+                'Serve files and directories over the network',
+                'Upload and download support',
+                'Web-based client interface for file management',
+                'Authentication with username/password',
+                'File and folder deletion',
+                'Configurable port',
+                'Debug mode for troubleshooting',
+              ].map(f => (
+                <li key={f} className="flex gap-2 items-start">
+                  <span className="text-[#3fb950] mt-0.5">&#10003;</span>
+                  <span className="text-[#c9d1d9]">{f}</span>
+                </li>
+              ))}
+            </ul>
+
+            {/* Options table */}
+            <h2 className="text-lg font-semibold text-[#c9d1d9] pb-1 border-b border-[#30363d] mb-3 mt-6">Options</h2>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm border border-[#30363d] rounded-md">
+                <thead>
+                  <tr className="bg-[#161b22] border-b border-[#30363d]">
+                    <th className="text-left px-3 py-2 text-[#c9d1d9] font-semibold">Flag</th>
+                    <th className="text-left px-3 py-2 text-[#c9d1d9] font-semibold">Default</th>
+                    <th className="text-left px-3 py-2 text-[#c9d1d9] font-semibold">Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { flag: '-u', def: 'true', desc: 'Toggle upload restrictions' },
+                    { flag: '-p', def: '8989', desc: 'Specify custom port' },
+                    { flag: '--username', def: 'undefined', desc: 'Set authentication username' },
+                    { flag: '--password', def: 'undefined', desc: 'Set authentication password' },
+                    { flag: '--delete', def: 'false', desc: 'Enable file/folder deletion' },
+                    { flag: '--debug', def: 'false', desc: 'Enable debug logging' },
+                  ].map(opt => (
+                    <tr key={opt.flag} className="border-b border-[#30363d]">
+                      <td className="px-3 py-2 font-mono text-[#79c0ff] text-xs">{opt.flag}</td>
+                      <td className="px-3 py-2 font-mono text-[#a5d6ff] text-xs">{opt.def}</td>
+                      <td className="px-3 py-2 text-[#8b949e]">{opt.desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Examples */}
+            <h2 className="text-lg font-semibold text-[#c9d1d9] pb-1 border-b border-[#30363d] mb-3 mt-6">Examples</h2>
+            <div className="space-y-2 mb-6">
+              {[
+                'npx directory-serve .',
+                'npx directory-serve ~/Desktop -p=3000 --username=test --password=password',
+                'npx directory-serve ~/Desktop/my_image.png',
+              ].map(cmd => (
+                <div key={cmd} className="bg-[#161b22] border border-[#30363d] rounded-md px-4 py-2 font-mono text-sm">
+                  <span className="text-[#8b949e]">$</span> <span className="text-[#79c0ff]">{cmd}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer link */}
+            <div className="border-t border-[#30363d] pt-4 mt-6 text-center">
+              <a href="https://github.com/cube-root/directory-serve" target="_blank" rel="noopener noreferrer" className="text-[#58a6ff] hover:underline text-sm">
+                View on GitHub &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
