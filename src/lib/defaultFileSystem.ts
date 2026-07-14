@@ -172,6 +172,12 @@ Description: Proxy management tool for multiple configurations
 GitHub: github.com/cube-root/proxyhub
 Live: www.proxyhub.app`);
 
+  fs.writeFile('/home/visitor/projects/pdf-editor.txt', `PDF Editor
+==========
+Tech: Web Application
+Description: Online PDF editor
+Live: pdf.abhijith.me`);
+
   fs.writeFile('/home/visitor/projects/gvardios.txt', `Gvardios
 ========
 Award: Best Project Award

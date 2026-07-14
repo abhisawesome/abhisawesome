@@ -347,6 +347,7 @@ function ResumePage() {
             { name: 'MyExpense', stars: '10+', desc: 'Manage bills using Google Sheets as backend', tech: 'Next.js, TypeScript' },
             { name: 'FigmaSync', desc: 'Figma plugin to sync designs with GitHub', tech: 'Figma Plugin' },
             { name: 'ProxyHub', desc: 'Proxy management for multiple configs', tech: 'Node.js', live: 'proxyhub.app' },
+            { name: 'PDF Editor', desc: 'Edit PDF documents online', tech: 'Web Application', live: 'pdf.abhijith.me' },
           ].map(p => (
             <div key={p.name} className="border border-gray-200 rounded-lg p-3">
               <div className="flex items-center justify-between">
