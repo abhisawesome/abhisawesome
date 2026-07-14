@@ -87,6 +87,7 @@ const abhi = {
 | [**MyExpense**](https://github.com/cube-root/expenser) | Manage bills using Google Sheets as backend | ![Stars](https://img.shields.io/github/stars/cube-root/expenser?style=flat-square&color=00d4aa) |
 | [**FigmaSync**](https://github.com/figmasync/figmasync) | Figma plugin to sync designs with GitHub | - |
 | [**ProxyHub**](https://github.com/cube-root/proxyhub) | Proxy management for multiple configs | [![Live](https://img.shields.io/badge/Live-proxyhub.app-00d4aa?style=flat-square)](https://www.proxyhub.app/) |
+| [**PDF Editor**](https://pdf.abhijith.me/) | Edit PDF documents online | [![Live](https://img.shields.io/badge/Live-pdf.abhijith.me-00d4aa?style=flat-square)](https://pdf.abhijith.me/) |
 
 </td>
 <td width="50%" valign="top">
