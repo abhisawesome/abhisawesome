@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import {
   ArrowDown,
   ArrowRight,
@@ -15,12 +15,15 @@ import {
   Linkedin,
   Network,
   Orbit,
+  Palette,
   Play,
   RotateCcw,
   Send,
   ShieldCheck,
+  Moon,
   Smartphone,
   Sparkles,
+  Sun,
   Terminal,
   Users,
   Wifi,
@@ -28,36 +31,12 @@ import {
   Zap,
 } from 'lucide-react'
 
-type LabId = 'pdf' | 'expense' | 'proxy' | 'directory'
+type LabId = 'pdf' | 'expense' | 'proxy' | 'directory' | 'words'
 
 const labs = [
   {
-    id: 'pdf' as const,
-    number: '01',
-    name: 'PDF Toolkit',
-    short: 'Private document tools',
-    statement: 'Your documents should stay yours.',
-    description: 'Merge, edit and annotate PDFs inside the browser. Nothing is uploaded, so private files never leave the device.',
-    url: 'https://pdf.abhijith.me',
-    accent: '#ff7a55',
-    icon: FilePenLine,
-    tags: ['Privacy first', 'Browser based', 'Live product'],
-  },
-  {
-    id: 'expense' as const,
-    number: '02',
-    name: 'MyExpense',
-    short: 'Personal finance',
-    statement: 'Track money without surrendering the data.',
-    description: 'A focused expense tracker where categories, budgets and transactions live in a Google Sheet controlled by the user.',
-    url: 'https://expense.abhijith.me',
-    accent: '#c8ff65',
-    icon: CircleDollarSign,
-    tags: ['Open source', 'User owned data', 'Live product'],
-  },
-  {
     id: 'proxy' as const,
-    number: '03',
+    number: '01',
     name: 'ProxyHub',
     short: 'Internet tunnels',
     statement: 'Turn localhost into a public link.',
@@ -69,7 +48,7 @@ const labs = [
   },
   {
     id: 'directory' as const,
-    number: '04',
+    number: '02',
     name: 'Directory Serve',
     short: 'Frictionless sharing',
     statement: 'Move a file. Skip the setup.',
@@ -79,6 +58,42 @@ const labs = [
     icon: Send,
     tags: ['Open source', '430+ stars', 'CLI tool'],
   },
+  {
+    id: 'pdf' as const,
+    number: '03',
+    name: 'PDF Toolkit',
+    short: 'Private document tools',
+    statement: 'Your documents should stay yours.',
+    description: 'Merge, edit and annotate PDFs inside the browser. Nothing is uploaded, so private files never leave the device.',
+    url: 'https://pdf.abhijith.me',
+    accent: '#ff7a55',
+    icon: FilePenLine,
+    tags: ['Privacy first', 'Browser based', 'Live product'],
+  },
+  {
+    id: 'expense' as const,
+    number: '04',
+    name: 'MyExpense',
+    short: 'Personal finance',
+    statement: 'Track money without surrendering the data.',
+    description: 'A focused expense tracker where categories, budgets and transactions live in a Google Sheet controlled by the user.',
+    url: 'https://expense.abhijith.me',
+    accent: '#c8ff65',
+    icon: CircleDollarSign,
+    tags: ['Open source', 'User owned data', 'Live product'],
+  },
+  {
+    id: 'words' as const,
+    number: '05',
+    name: 'DoodleDash',
+    short: 'Multiplayer drawing game',
+    statement: 'Draw it. Guess it. Play together.',
+    description: 'An online multiplayer drawing and guessing game for playing with friends in real time.',
+    url: 'https://words.abhijith.me/',
+    accent: '#ffcf5c',
+    icon: Palette,
+    tags: ['Multiplayer', 'Drawing game', 'Live product'],
+  },
 ]
 
 function ProductDemo({ id, accent }: { id: LabId; accent: string }) {
@@ -86,6 +101,7 @@ function ProductDemo({ id, accent }: { id: LabId; accent: string }) {
   const [expenses, setExpenses] = useState<number[]>([680, 240])
   const [connected, setConnected] = useState(false)
   const [sent, setSent] = useState(false)
+  const [playing, setPlaying] = useState(false)
 
   if (id === 'pdf') {
     return (
@@ -132,6 +148,22 @@ function ProductDemo({ id, accent }: { id: LabId; accent: string }) {
     )
   }
 
+  if (id === 'words') {
+    return (
+      <div className="lab-demo proxy-demo">
+        <div className="network-map">
+          <div className="network-node"><Palette /><span>{playing ? 'Draw: _ _ _ _ _' : 'Create a room'}</span></div>
+          <div className={`network-line ${playing ? 'is-connected' : ''}`}><i /><i /><i /></div>
+          <div className={`network-node public ${playing ? 'is-connected' : ''}`}><Users /><span>{playing ? 'Friends are guessing…' : 'Invite friends'}</span></div>
+        </div>
+        <button className="lab-action" style={{ background: accent }} onClick={() => setPlaying(!playing)}>
+          {playing ? <><RotateCcw /> Reset round</> : <><Play /> Start a round</>}
+        </button>
+        {playing && <p className="demo-success"><Check /> The multiplayer round has started.</p>}
+      </div>
+    )
+  }
+
   return (
     <div className="lab-demo send-demo">
       <div className={`device-transfer ${sent ? 'is-sent' : ''}`}>
@@ -148,9 +180,18 @@ function ProductDemo({ id, accent }: { id: LabId; accent: string }) {
 }
 
 export function StoryPortfolio() {
-  const [activeLab, setActiveLab] = useState<LabId>('pdf')
+  const [activeLab, setActiveLab] = useState<LabId>(labs[0].id)
   const [pointer, setPointer] = useState({ x: 50, y: 50 })
+  const [isLight, setIsLight] = useState(() => localStorage.getItem('story-theme') === 'light')
   const active = labs.find(lab => lab.id === activeLab) ?? labs[0]
+
+  useEffect(() => {
+    setActiveLab(labs[0].id)
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('story-theme', isLight ? 'light' : 'dark')
+  }, [isLight])
 
   const moveLight = (event: MouseEvent<HTMLElement>) => {
     const bounds = event.currentTarget.getBoundingClientRect()
@@ -158,11 +199,16 @@ export function StoryPortfolio() {
   }
 
   return (
-    <div className="product-lab h-[100dvh] overflow-y-auto overflow-x-hidden bg-[#0c0e12] text-[#f5f2e9] selection:bg-[#c8ff65] selection:text-black">
+    <div className={`product-lab ${isLight ? 'light-mode' : ''} h-[100dvh] overflow-y-auto overflow-x-hidden bg-[#0c0e12] text-[#f5f2e9] selection:bg-[#c8ff65] selection:text-black`}>
       <header className="lab-nav">
-        <a href="#home" className="lab-logo"><span>AV</span><div><b>ABHIJITH V</b><small>PRODUCT LAB</small></div></a>
+        <a href="#home" className="lab-logo"><span><img src={`${import.meta.env.BASE_URL}images/developer-avatar.png`} alt="AV — Abhijith V working at a computer" /></span><div><b>ABHIJITH V</b><small>PRODUCT LAB</small></div></a>
         <nav><a href="#experiments">Experiments</a><a href="#about">About</a><a href="#contact">Contact</a></nav>
-        <div className="lab-status"><i /> Available to collaborate</div>
+        <div className="lab-nav-actions">
+          <div className="lab-status"><i /> Available to collaborate</div>
+          <button className="theme-toggle" type="button" onClick={() => setIsLight(current => !current)} aria-label={`Switch to ${isLight ? 'dark' : 'light'} mode`}>
+            {isLight ? <Moon /> : <Sun />}
+          </button>
+        </div>
       </header>
 
       <section id="home" className="lab-hero" onMouseMove={moveLight} style={{ '--light-x': `${pointer.x}%`, '--light-y': `${pointer.y}%` } as React.CSSProperties}>
@@ -192,7 +238,7 @@ export function StoryPortfolio() {
 
       <section id="experiments" className="experiments-section">
         <div className="section-heading">
-          <div><p className="lab-eyebrow">Selected experiments · 001—004</p><h2>Don’t just read.<br /><span>Try the idea.</span></h2></div>
+          <div><p className="lab-eyebrow">Selected experiments · 001—005</p><h2>Don’t just read.<br /><span>Try the idea.</span></h2></div>
           <p>Every project began with a real frustration. Use the mini experiments to feel what each product makes simpler.</p>
         </div>
 

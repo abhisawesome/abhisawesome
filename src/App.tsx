@@ -24,7 +24,7 @@ function App() {
 
   return (
     <main className="relative h-[100dvh] w-full">
-      {!isMobile && <div className="fixed right-3 top-10 z-[100000] rounded-full border border-white/15 bg-[#0b1220]/80 p-1 text-white shadow-2xl shadow-black/25 backdrop-blur-xl sm:right-5 sm:top-11">
+      {!isMobile && <div className="fixed bottom-5 right-5 z-[100000] rounded-full border border-white/15 bg-[#0b1220]/80 p-1 text-white shadow-2xl shadow-black/25 backdrop-blur-xl">
         <div className="flex items-center" role="group" aria-label="Choose portfolio view">
           <button
             type="button"

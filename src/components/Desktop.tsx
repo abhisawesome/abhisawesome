@@ -252,7 +252,7 @@ export const Desktop = () => {
   // Lock screen
   if (locked) {
     return (
-      <div className="w-full h-[100dvh] overflow-hidden flex flex-col relative text-white select-none cursor-pointer"
+      <div className="developer-mode w-full h-[100dvh] overflow-hidden flex flex-col relative text-white select-none cursor-pointer"
         onClick={handleUnlock} onKeyDown={(e) => { if (e.key === 'Enter') handleUnlock(); }} tabIndex={0}>
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, #1b2838 0%, #223049 30%, #2a4158 55%, #1e3a50 75%, #152a3a 100%)' }} />
@@ -279,7 +279,7 @@ export const Desktop = () => {
   }
 
   return (
-    <div className="w-full h-[100dvh] overflow-hidden flex flex-col relative text-white select-none"
+    <div className="developer-mode w-full h-[100dvh] overflow-hidden flex flex-col relative text-white select-none"
       onContextMenu={(e) => e.preventDefault()}>
       {/* Wallpaper */}
       <div className="absolute inset-0 overflow-hidden">
