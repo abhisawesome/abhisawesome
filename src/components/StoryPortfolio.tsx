@@ -337,7 +337,7 @@ export function StoryPortfolio() {
             <div><strong>7+</strong><span>Years shipping products</span></div>
             <div><strong>430+</strong><span>Stars on Directory Serve</span></div>
             <div><Award /><span>Encryption Algorithm copyright in India · RoC No. SW-12543/2019</span></div>
-            <div><Users /><span>Community &amp; student leadership</span></div>
+            <div><Users /><span>Hackathon winner</span></div>
           </div>
         </div>
       </section>
