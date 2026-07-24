@@ -103,7 +103,7 @@ Feel free to reach out for collaborations or opportunities!`);
 COPYRIGHT HOLDER
   • Encryption Algorithm in India
   • Diary No: 4977/2019-CO/SW
-  • ROC No: SW-12543/2019
+  • RoC No: SW-12543/2019
 
 ACADEMIC AWARDS
   • Best Outgoing Student (GEM of CSE)
@@ -177,6 +177,21 @@ Live: www.proxyhub.app`);
 Tech: Web Application
 Description: Online PDF editor
 Live: pdf.abhijith.me`);
+
+  fs.writeFile('/home/visitor/projects/bingo.txt', `Bingo
+=====
+Tech: Web Application
+Description: Create and share custom bingo cards with friends
+GitHub: github.com/abhisawesome/bingo
+Live: bingo.abhijith.me`);
+
+  fs.writeFile('/home/visitor/projects/rcea.txt', `RCEA
+====
+Category: Encryption algorithm / Computer Software
+Copyright: Copyright Office, Government of India
+Diary No: 4977/2019-CO/SW
+RoC No: SW-12543/2019 (18 June 2019)
+Live: rcea.abhijith.me`);
 
   fs.writeFile('/home/visitor/projects/gvardios.txt', `Gvardios
 ========

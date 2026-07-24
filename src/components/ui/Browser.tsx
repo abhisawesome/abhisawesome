@@ -345,9 +345,11 @@ function ResumePage() {
           {[
             { name: 'Directory Serve', stars: '430+', desc: 'CLI tool to share/send/receive files on a network', tech: 'Node.js' },
             { name: 'MyExpense', stars: '10+', desc: 'Manage bills using Google Sheets as backend', tech: 'Next.js, TypeScript' },
+            { name: 'RCEA', desc: 'Encryption Algorithm copyrighted in India (Diary No. 4977/2019-CO/SW; RoC No. SW-12543/2019)', tech: 'Cryptography', live: 'rcea.abhijith.me' },
             { name: 'FigmaSync', desc: 'Figma plugin to sync designs with GitHub', tech: 'Figma Plugin' },
             { name: 'ProxyHub', desc: 'Proxy management for multiple configs', tech: 'Node.js', live: 'proxyhub.app' },
             { name: 'PDF Editor', desc: 'Edit PDF documents online', tech: 'Web Application', live: 'pdf.abhijith.me' },
+            { name: 'Bingo', desc: 'Create and share custom bingo cards with friends', tech: 'Web Application', live: 'bingo.abhijith.me' },
           ].map(p => (
             <div key={p.name} className="border border-gray-200 rounded-lg p-3">
               <div className="flex items-center justify-between">

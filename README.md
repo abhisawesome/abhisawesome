@@ -85,9 +85,11 @@ const abhi = {
 |---------|-------------|-------|
 | [**Directory Serve**](https://github.com/cube-root/directory-serve) | CLI tool to share/send/receive files on a network | ![Stars](https://img.shields.io/github/stars/cube-root/directory-serve?style=flat-square&color=00d4aa) |
 | [**MyExpense**](https://github.com/cube-root/expenser) | Manage bills using Google Sheets as backend | ![Stars](https://img.shields.io/github/stars/cube-root/expenser?style=flat-square&color=00d4aa) |
+| [**RCEA**](https://rcea.abhijith.me/) | Encryption Algorithm copyrighted in India — Diary No. 4977/2019-CO/SW; RoC No. SW-12543/2019 | [![Copyright](https://img.shields.io/badge/Copyright-India-00d4aa?style=flat-square)](https://copyright.gov.in/Documents/ERegister/E-Register_June_2019.pdf) |
 | [**FigmaSync**](https://github.com/figmasync/figmasync) | Figma plugin to sync designs with GitHub | - |
 | [**ProxyHub**](https://github.com/cube-root/proxyhub) | Proxy management for multiple configs | [![Live](https://img.shields.io/badge/Live-proxyhub.app-00d4aa?style=flat-square)](https://www.proxyhub.app/) |
 | [**PDF Editor**](https://pdf.abhijith.me/) | Edit PDF documents online | [![Live](https://img.shields.io/badge/Live-pdf.abhijith.me-00d4aa?style=flat-square)](https://pdf.abhijith.me/) |
+| [**Bingo**](https://github.com/abhisawesome/bingo) | Create and share custom bingo cards with friends | [![Live](https://img.shields.io/badge/Live-bingo.abhijith.me-00d4aa?style=flat-square)](https://bingo.abhijith.me/) |
 
 </td>
 <td width="50%" valign="top">

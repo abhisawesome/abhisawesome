@@ -11,8 +11,10 @@ import {
   FilePenLine,
   FileText,
   Github,
+  Grid3X3,
   Laptop,
   Linkedin,
+  LockKeyhole,
   Network,
   Orbit,
   Palette,
@@ -31,7 +33,7 @@ import {
   Zap,
 } from 'lucide-react'
 
-type LabId = 'pdf' | 'expense' | 'proxy' | 'directory' | 'words'
+type LabId = 'pdf' | 'expense' | 'proxy' | 'directory' | 'words' | 'bingo' | 'rcea'
 
 const labs = [
   {
@@ -59,8 +61,20 @@ const labs = [
     tags: ['Open source', '430+ stars', 'CLI tool'],
   },
   {
-    id: 'pdf' as const,
+    id: 'rcea' as const,
     number: '03',
+    name: 'RCEA',
+    short: 'Encryption research',
+    statement: 'A new way to protect information.',
+    description: 'An original encryption algorithm copyrighted as computer software with the Copyright Office, Government of India (Diary No. 4977/2019-CO/SW; RoC No. SW-12543/2019).',
+    url: 'https://rcea.abhijith.me',
+    accent: '#67e8a5',
+    icon: LockKeyhole,
+    tags: ['Copyrighted in India', 'Encryption', 'Research'],
+  },
+  {
+    id: 'pdf' as const,
+    number: '04',
     name: 'PDF Toolkit',
     short: 'Private document tools',
     statement: 'Your documents should stay yours.',
@@ -72,7 +86,7 @@ const labs = [
   },
   {
     id: 'expense' as const,
-    number: '04',
+    number: '05',
     name: 'MyExpense',
     short: 'Personal finance',
     statement: 'Track money without surrendering the data.',
@@ -84,7 +98,7 @@ const labs = [
   },
   {
     id: 'words' as const,
-    number: '05',
+    number: '06',
     name: 'DoodleDash',
     short: 'Multiplayer drawing game',
     statement: 'Draw it. Guess it. Play together.',
@@ -94,6 +108,18 @@ const labs = [
     icon: Palette,
     tags: ['Multiplayer', 'Drawing game', 'Live product'],
   },
+  {
+    id: 'bingo' as const,
+    number: '07',
+    name: 'Bingo',
+    short: 'Social bingo cards',
+    statement: 'Make a card. Share the fun.',
+    description: 'Create a custom bingo card, share it with friends and mark off moments together right from the browser.',
+    url: 'https://bingo.abhijith.me',
+    accent: '#ff8fcf',
+    icon: Grid3X3,
+    tags: ['Open source', 'Social game', 'Live product'],
+  },
 ]
 
 function ProductDemo({ id, accent }: { id: LabId; accent: string }) {
@@ -102,6 +128,8 @@ function ProductDemo({ id, accent }: { id: LabId; accent: string }) {
   const [connected, setConnected] = useState(false)
   const [sent, setSent] = useState(false)
   const [playing, setPlaying] = useState(false)
+  const [bingoMarks, setBingoMarks] = useState<number[]>([6, 12, 18])
+  const [encrypted, setEncrypted] = useState(false)
 
   if (id === 'pdf') {
     return (
@@ -160,6 +188,43 @@ function ProductDemo({ id, accent }: { id: LabId; accent: string }) {
           {playing ? <><RotateCcw /> Reset round</> : <><Play /> Start a round</>}
         </button>
         {playing && <p className="demo-success"><Check /> The multiplayer round has started.</p>}
+      </div>
+    )
+  }
+
+  if (id === 'bingo') {
+    return (
+      <div className="lab-demo bingo-demo">
+        <div className="bingo-card" aria-label="Interactive bingo card">
+          {Array.from({ length: 25 }, (_, index) => (
+            <button
+              type="button"
+              key={index}
+              className={bingoMarks.includes(index) ? 'is-marked' : ''}
+              onClick={() => setBingoMarks(current => current.includes(index) ? current.filter(mark => mark !== index) : [...current, index])}
+              aria-label={`${bingoMarks.includes(index) ? 'Unmark' : 'Mark'} bingo square ${index + 1}`}
+            >
+              {index === 12 ? 'FREE' : index + 1}
+            </button>
+          ))}
+        </div>
+        <p className="bingo-hint">Tap any square to mark your card.</p>
+      </div>
+    )
+  }
+
+  if (id === 'rcea') {
+    return (
+      <div className="lab-demo rcea-demo">
+        <div className={`cipher-card ${encrypted ? 'is-encrypted' : ''}`}>
+          <LockKeyhole />
+          <small>{encrypted ? 'RCEA CIPHERTEXT' : 'PLAINTEXT'}</small>
+          <strong>{encrypted ? '7F A2 91 C8 4D E6' : 'PROTECT THIS'}</strong>
+          <span>DIARY 4977/2019-CO/SW · ROC SW-12543/2019</span>
+        </div>
+        <button className="lab-action" style={{ background: accent }} onClick={() => setEncrypted(current => !current)}>
+          {encrypted ? <><RotateCcw /> Decrypt demo</> : <><ShieldCheck /> Encrypt with RCEA</>}
+        </button>
       </div>
     )
   }
@@ -238,7 +303,7 @@ export function StoryPortfolio() {
 
       <section id="experiments" className="experiments-section">
         <div className="section-heading">
-          <div><p className="lab-eyebrow">Selected experiments · 001—005</p><h2>Don’t just read.<br /><span>Try the idea.</span></h2></div>
+          <div><p className="lab-eyebrow">Selected experiments · 001—007</p><h2>Don’t just read.<br /><span>Try the idea.</span></h2></div>
           <p>Every project began with a real frustration. Use the mini experiments to feel what each product makes simpler.</p>
         </div>
 
@@ -271,7 +336,7 @@ export function StoryPortfolio() {
           <div className="proof-grid">
             <div><strong>7+</strong><span>Years shipping products</span></div>
             <div><strong>430+</strong><span>Stars on Directory Serve</span></div>
-            <div><Award /><span>Encryption algorithm copyright</span></div>
+            <div><Award /><span>Encryption Algorithm copyright in India · RoC No. SW-12543/2019</span></div>
             <div><Users /><span>Community &amp; student leadership</span></div>
           </div>
         </div>
